@@ -7,6 +7,49 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.2.2 - [Data: 2025-12-11]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Atualizado CHANGELOG com histórico completo de commits
+- Documentação melhorada com hash de commits e timestamps precisos
+- Preparação para próximas releases
+
+--------------------------------------------------------------------------------
+MELHORIAS REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. DOCUMENTAÇÃO DO CHANGELOG
+   - Arquivo: CHANGELOG.txt
+   - Mudança: Adicionado hash completo de commits no histórico
+   - Melhorias:
+     * Timestamps precisos para cada commit
+     * Hash completo para rastreabilidade
+     * Estrutura consistente com versões anteriores
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. CHANGELOG.txt
+   - Atualizado: Histórico de commits com hash e timestamp
+   - Melhorado: Documentação da versão 0.2.1
+
+2. packing-panel-woo-dev.php
+   - Versão atualizada: 0.2.1 → 0.2.2
+
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: (pendente)
+Data: 2025-12-11
+Mensagem: docs: atualiza CHANGELOG e versão para 0.2.2
+Arquivos:
+  - CHANGELOG.txt (atualizado)
+  - packing-panel-woo-dev.php (versão atualizada)
+
+================================================================================
 VERSÃO 0.2.1 - [Data: 2025-12-11]
 ================================================================================
 
@@ -122,8 +165,8 @@ NOTAS TÉCNICAS:
 HISTÓRICO DE COMMITS:
 --------------------------------------------------------------------------------
 
-Commit: (pendente)
-Data: 2025-12-11
+Commit: 7b98c13
+Data: 2025-12-11 18:44:50
 Mensagem: feat: melhora refresh cache, notificações e carregamento de assets (v0.2.1)
 Arquivos:
   - inc/admin-refresh-cache.php (modificado)
