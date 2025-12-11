@@ -3,7 +3,7 @@
  * Plugin Name: Painel de Empacotamento Woo
  * Plugin URI: https://github.com/caslusilver/packing-panel-woo-dev
  * Description: Painel administrativo de empacotamento para pedidos via WooCommerce, com abas Motoboy e Correios, workflow e integração com webhooks externos.
- * Version: 0.2.3
+ * Version: 0.3.0
  * Author: Lucas Andrade / AI
  * Author URI: https://github.com/caslusilver
  * License: GPL2
@@ -78,7 +78,21 @@ require_once plugin_dir_path(__FILE__) . 'inc/core/class-utils.php';
 require_once plugin_dir_path(__FILE__) . 'inc/core/class-security.php';
 require_once plugin_dir_path(__FILE__) . 'inc/core/class-webhook.php';
 require_once plugin_dir_path(__FILE__) . 'inc/core/class-orders.php';
+require_once plugin_dir_path(__FILE__) . 'inc/core/class-debug.php';
 
 // Carrega classe principal
 require_once plugin_dir_path(__FILE__) . 'inc/class-packing-panel.php';
 require_once plugin_dir_path(__FILE__) . 'inc/admin-refresh-cache.php';
+
+// Carrega classes de admin
+require_once plugin_dir_path(__FILE__) . 'inc/core/class-style.php';
+require_once plugin_dir_path(__FILE__) . 'inc/admin/class-admin-menu.php';
+require_once plugin_dir_path(__FILE__) . 'inc/admin/class-admin-style-tab.php';
+require_once plugin_dir_path(__FILE__) . 'inc/admin/class-admin-connection-tab.php';
+require_once plugin_dir_path(__FILE__) . 'inc/integrations/class-webhook-client.php';
+
+// Inicializa menu admin
+PPWOO_Admin_Menu::init();
+
+// Registra handler AJAX para teste de webhook
+add_action('wp_ajax_ppwoo_test_webhook', [PPWOO_Admin_Connection_Tab::class, 'ajax_test_webhook']);

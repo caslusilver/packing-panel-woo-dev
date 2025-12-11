@@ -1,0 +1,447 @@
+================================================================================
+CONTRATO DE CAMPOS - PackPanel
+================================================================================
+
+Este arquivo documenta todos os campos atualmente lidos e renderizados pelo
+painel PackPanel, bem como sugestões de chaves JSON equivalentes para uso
+em webhooks externos.
+
+================================================================================
+CAMPOS DO PEDIDO WOOCOMMERCE
+================================================================================
+
+1. IDENTIFICAÇÃO DO PEDIDO
+   Campo WooCommerce: $order->get_id()
+   Tipo: integer
+   Uso no Painel: Exibido como "Pedido #{id}" no cabeçalho
+   Sugestão JSON: "id" ou "order_id"
+
+2. STATUS DO PEDIDO
+   Campo WooCommerce: $order->get_status()
+   Tipo: string
+   Uso no Painel: Usado para filtrar pedidos pendentes
+   Sugestão JSON: "status"
+
+3. TOTAL DO PEDIDO
+   Campo WooCommerce: $order->get_total()
+   Tipo: float
+   Uso no Painel: Exibido na seção "Total Pedido"
+   Sugestão JSON: "total"
+
+4. TOTAL DO FRETE
+   Campo WooCommerce: $order->get_shipping_total()
+   Tipo: float
+   Uso no Painel: Exibido na seção "Total Frete"
+   Sugestão JSON: "shipping_total"
+
+================================================================================
+CAMPOS DE COBRANÇA (BILLING)
+================================================================================
+
+5. PRIMEIRO NOME
+   Campo WooCommerce: $order->get_billing_first_name()
+   Tipo: string
+   Uso no Painel: Exibido na seção "Cliente" (concatena com sobrenome)
+   Sugestão JSON: "billing.first_name" ou "billing_first_name"
+
+6. SOBRENOME
+   Campo WooCommerce: $order->get_billing_last_name()
+   Tipo: string
+   Uso no Painel: Exibido na seção "Cliente" (concatena com primeiro nome)
+   Sugestão JSON: "billing.last_name" ou "billing_last_name"
+
+7. ENDEREÇO (LINHA 1)
+   Campo WooCommerce: $order->get_billing_address_1()
+   Tipo: string
+   Uso no Painel: Exibido na seção "Endereço"
+   Sugestão JSON: "billing.address_1" ou "billing_address_1"
+
+8. CIDADE
+   Campo WooCommerce: $order->get_billing_city()
+   Tipo: string
+   Uso no Painel: Exibido na seção "Endereço"
+   Sugestão JSON: "billing.city" ou "billing_city"
+
+9. ESTADO
+   Campo WooCommerce: $order->get_billing_state()
+   Tipo: string
+   Uso no Painel: Exibido na seção "Endereço" (aba Correios)
+   Sugestão JSON: "billing.state" ou "billing_state"
+
+10. CEP
+    Campo WooCommerce: $order->get_billing_postcode()
+    Tipo: string
+    Uso no Painel: Exibido como "CEP: {postcode}"
+    Sugestão JSON: "billing.postcode" ou "billing_postcode"
+
+================================================================================
+CAMPOS DE ENVIO (SHIPPING)
+================================================================================
+
+11. ENDEREÇO DE ENVIO
+    Campo WooCommerce: $order->get_address('shipping')
+    Tipo: array
+    Uso no Painel: Usado para webhook (não exibido diretamente)
+    Sugestão JSON: "shipping" (objeto com address_1, city, state, postcode, etc.)
+
+================================================================================
+META CAMPOS CUSTOMIZADOS (_billing_*)
+================================================================================
+
+12. NÚMERO DO ENDEREÇO
+    Campo WooCommerce: $order->get_meta('_billing_number')
+    Tipo: string
+    Uso no Painel: Exibido no endereço como "nº {number}"
+    Sugestão JSON: "billing.number" ou "billing_number" ou "meta._billing_number"
+
+13. BAIRRO
+    Campo WooCommerce: $order->get_meta('_billing_neighborhood')
+    Tipo: string
+    Uso no Painel: Exibido no endereço após o número
+    Sugestão JSON: "billing.neighborhood" ou "billing_neighborhood" ou "meta._billing_neighborhood"
+
+14. COMPLEMENTO
+    Campo WooCommerce: $order->get_meta('_billing_complemento')
+    Tipo: string
+    Uso no Painel: Exibido abaixo do endereço principal
+    Sugestão JSON: "billing.complement" ou "billing_complemento" ou "meta._billing_complemento"
+
+15. CELULAR/WHATSAPP
+    Campo WooCommerce: $order->get_meta('_billing_cellphone')
+    Tipo: string
+    Uso no Painel: Exibido na seção "WhatsApp"
+    Sugestão JSON: "billing.cellphone" ou "billing_cellphone" ou "meta._billing_cellphone"
+
+16. CPF
+    Campo WooCommerce: $order->get_meta('billing_cpf')
+    Tipo: string
+    Uso no Painel: Usado no webhook (sanitizado para apenas dígitos)
+    Sugestão JSON: "billing.cpf" ou "billing_cpf" ou "meta.billing_cpf"
+
+================================================================================
+META CAMPOS DO PAINEL (_packing_panel_*)
+================================================================================
+
+17. ETAPA DO WORKFLOW
+    Campo WooCommerce: $order->get_meta('_packing_panel_workflow_step')
+    Tipo: string ('step1' ou 'step2')
+    Uso no Painel: Controla qual slide do workflow está visível (Motoboy)
+    Sugestão JSON: "workflow_step" ou "meta._packing_panel_workflow_step"
+
+18. LINK DE RASTREIO
+    Campo WooCommerce: $order->get_meta('_packing_panel_tracking_link')
+    Tipo: string (URL)
+    Uso no Painel: Exibido no workflow step 2 (Motoboy)
+    Sugestão JSON: "tracking_link" ou "meta._packing_panel_tracking_link"
+
+19. PRAZO DE ENTREGA
+    Campo WooCommerce: $order->get_meta('_packing_panel_delivery_deadline')
+    Tipo: string
+    Uso no Painel: Exibido no workflow step 2 (Motoboy)
+    Sugestão JSON: "delivery_deadline" ou "meta._packing_panel_delivery_deadline"
+
+20. CUSTO DO FRETE PAGO
+    Campo WooCommerce: $order->get_meta('_packing_panel_shipping_paid_cost')
+    Tipo: float
+    Uso no Painel: Exibido no workflow step 2 (Motoboy)
+    Sugestão JSON: "shipping_paid_cost" ou "meta._packing_panel_shipping_paid_cost"
+
+21. CÓDIGO DE FINALIZAÇÃO
+    Campo WooCommerce: $order->get_meta('_packing_panel_finalization_code')
+    Tipo: integer
+    Uso no Painel: Campo de input no workflow step 2 (Motoboy)
+    Sugestão JSON: "finalization_code" ou "meta._packing_panel_finalization_code"
+
+22. WHATSAPP DO MOTOBOY
+    Campo WooCommerce: $order->get_meta('_packing_panel_motoboy_whatsapp')
+    Tipo: string
+    Uso no Painel: Exibido no workflow step 2 (Motoboy)
+    Sugestão JSON: "motoboy_whatsapp" ou "meta._packing_panel_motoboy_whatsapp"
+
+23. CANAL DE ORIGEM (WHATSAPP)
+    Campo WooCommerce: $order->get_meta('_ppwoo_channel')
+    Tipo: string ('whatsapp' ou outro)
+    Uso no Painel: Usado para exibir badge WhatsApp
+    Sugestão JSON: "channel" ou "source" ou "meta._ppwoo_channel"
+
+================================================================================
+CAMPOS DE ITENS DO PEDIDO
+================================================================================
+
+24. ITENS DO PEDIDO
+    Campo WooCommerce: $order->get_items()
+    Tipo: array de WC_Order_Item_Product
+    Uso no Painel: Exibidos na seção "Produtos" com imagem, nome e quantidade
+    Campos de cada item:
+      - product_id: ID do produto
+      - variation_id: ID da variação (se aplicável)
+      - name: Nome do produto
+      - quantity: Quantidade
+      - total: Total do item
+      - sku: SKU do produto
+      - image_url: URL da imagem (thumbnail)
+    Sugestão JSON: "items" (array de objetos com os campos acima)
+
+================================================================================
+CAMPOS DE CUPONS
+================================================================================
+
+25. CUPONS USADOS
+    Campo WooCommerce: $order->get_coupon_codes()
+    Tipo: array de strings
+    Uso no Painel: Exibido na seção "Cupom(ns) Usado(s)" (se houver)
+    Sugestão JSON: "coupons" (array de strings)
+
+================================================================================
+CAMPOS DE OBSERVAÇÕES
+================================================================================
+
+26. NOTA DO CLIENTE
+    Campo WooCommerce: $order->get_customer_note()
+    Tipo: string
+    Uso no Painel: Exibido na seção "Endereço" como "Nota do Cliente:"
+    Sugestão JSON: "customer_note" ou "note"
+
+================================================================================
+CAMPOS DE MÉTODO DE ENVIO
+================================================================================
+
+27. MÉTODO DE ENVIO
+    Campo WooCommerce: $order->get_shipping_methods()
+    Tipo: array de WC_Order_Item_Shipping
+    Uso no Painel: Exibido no cabeçalho como badge (Correios)
+    Sugestão JSON: "shipping_methods" (array de objetos)
+    Campos de cada método:
+      - method_title: Título do método de envio (ex: "Motoboy Express", "Correios PAC")
+      - method_id: ID do método de envio
+      - total: Custo do frete
+    Observação: Apenas o primeiro método (shipping_methods[0]) é considerado para
+                classificação por aba (ver seção abaixo).
+
+================================================================================
+REGRAS DE SEPARAÇÃO POR ABA (MOTOBOY vs CORREIOS)
+================================================================================
+
+O painel separa os pedidos em duas abas distintas: "Motoboy" e "Correios".
+A classificação é determinada pela combinação de dois critérios:
+
+CRITÉRIO 1: STATUS DO PEDIDO
+  - Motoboy: status = "processing"
+  - Correios: status = "on-hold"
+
+CRITÉRIO 2: TÍTULO DO MÉTODO DE ENVIO
+  - Motoboy: O título do primeiro método de envio (shipping_methods[0].method_title)
+             deve conter a string "motoboy" (case-insensitive, ou seja, "Motoboy",
+             "MOTOBOY", "motoboy" são todos válidos)
+  - Correios: Não há método de envio OU o título do primeiro método NÃO contém
+              "motoboy" (case-insensitive)
+
+REGRAS DE IMPLEMENTAÇÃO:
+  - Apenas o primeiro método de envio é considerado: shipping_methods[0]
+  - A verificação é feita no campo method_title (título), não no method_id
+  - A busca pela string "motoboy" é case-insensitive (stripos)
+  - Se não houver métodos de envio (array vazio), o pedido é classificado como Correios
+
+EXEMPLOS:
+  - status: "processing" + method_title: "Motoboy Express" → ABA MOTOBOY
+  - status: "processing" + method_title: "Correios PAC" → ABA CORREIOS
+  - status: "on-hold" + method_title: "Motoboy Rápido" → ABA CORREIOS
+  - status: "on-hold" + method_title: "Correios SEDEX" → ABA CORREIOS
+  - status: "on-hold" + shipping_methods: [] → ABA CORREIOS
+
+CAMPOS NECESSÁRIOS NO JSON/BANCO:
+  Para reproduzir a mesma lógica de separação, o payload/registro deve incluir:
+  - "status": string (obrigatório) - valores: "processing", "on-hold", etc.
+  - "shipping_methods": array (obrigatório, pode ser vazio)
+    - "shipping_methods[0].method_title": string (opcional se array vazio)
+
+================================================================================
+ESTRUTURA JSON SUGERIDA PARA WEBHOOK
+================================================================================
+
+EXEMPLO 1: PEDIDO MOTOBOY
+{
+  "id": 123,
+  "status": "processing",
+  "total": "150.00",
+  "shipping_total": "15.00",
+  "shipping_methods": [
+    {
+      "method_id": "flat_rate",
+      "method_title": "Motoboy Express",
+      "total": "15.00"
+    }
+  ],
+  "billing": {
+    "first_name": "João",
+    "last_name": "Silva",
+    "address_1": "Rua Exemplo",
+    "number": "123",
+    "neighborhood": "Centro",
+    "complement": "Apto 101",
+    "city": "São Paulo",
+    "state": "SP",
+    "postcode": "01234-567",
+    "cellphone": "11999999999",
+    "cpf": "12345678900"
+  },
+  "shipping": {
+    "address_1": "Rua Exemplo",
+    "city": "São Paulo",
+    "state": "SP",
+    "postcode": "01234-567"
+  },
+  "items": [
+    {
+      "product_id": 456,
+      "variation_id": 0,
+      "name": "Produto Exemplo",
+      "quantity": 2,
+      "total": "100.00",
+      "sku": "PROD-001",
+      "image_url": "https://exemplo.com/image.jpg"
+    }
+  ],
+  "coupons": ["DESCONTO10"],
+  "customer_note": "Entregar após 18h",
+  "channel": "whatsapp",
+  "workflow_step": "step1",
+  "tracking_link": "",
+  "delivery_deadline": "",
+  "shipping_paid_cost": "",
+  "finalization_code": null,
+  "motoboy_whatsapp": ""
+}
+
+EXEMPLO 2: PEDIDO CORREIOS
+{
+  "id": 124,
+  "status": "on-hold",
+  "total": "200.00",
+  "shipping_total": "25.00",
+  "shipping_methods": [
+    {
+      "method_id": "correios_pac",
+      "method_title": "Correios PAC",
+      "total": "25.00"
+    }
+  ],
+  "billing": {
+    "first_name": "Maria",
+    "last_name": "Santos",
+    "address_1": "Avenida Principal",
+    "number": "456",
+    "neighborhood": "Jardim",
+    "complement": "",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postcode": "20000-000",
+    "cellphone": "21988888888",
+    "cpf": "98765432100"
+  },
+  "shipping": {
+    "address_1": "Avenida Principal",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postcode": "20000-000"
+  },
+  "items": [
+    {
+      "product_id": 789,
+      "variation_id": 0,
+      "name": "Outro Produto",
+      "quantity": 1,
+      "total": "175.00",
+      "sku": "PROD-002",
+      "image_url": "https://exemplo.com/image2.jpg"
+    }
+  ],
+  "coupons": [],
+  "customer_note": "",
+  "channel": "website",
+  "workflow_step": null,
+  "tracking_link": "",
+  "delivery_deadline": "",
+  "shipping_paid_cost": "",
+  "finalization_code": null,
+  "motoboy_whatsapp": ""
+}
+
+EXEMPLO 3: PEDIDO CORREIOS (SEM MÉTODO DE ENVIO)
+{
+  "id": 125,
+  "status": "on-hold",
+  "total": "100.00",
+  "shipping_total": "0.00",
+  "shipping_methods": [],
+  "billing": {
+    "first_name": "Pedro",
+    "last_name": "Oliveira",
+    "address_1": "Rua Teste",
+    "number": "789",
+    "neighborhood": "Bairro Novo",
+    "complement": "",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postcode": "30000-000",
+    "cellphone": "31977777777",
+    "cpf": "11122233344"
+  },
+  "shipping": {
+    "address_1": "Rua Teste",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postcode": "30000-000"
+  },
+  "items": [
+    {
+      "product_id": 321,
+      "variation_id": 0,
+      "name": "Produto Teste",
+      "quantity": 1,
+      "total": "100.00",
+      "sku": "PROD-003",
+      "image_url": "https://exemplo.com/image3.jpg"
+    }
+  ],
+  "coupons": [],
+  "customer_note": "",
+  "channel": "website",
+  "workflow_step": null,
+  "tracking_link": "",
+  "delivery_deadline": "",
+  "shipping_paid_cost": "",
+  "finalization_code": null,
+  "motoboy_whatsapp": ""
+}
+
+================================================================================
+NOTAS IMPORTANTES
+================================================================================
+
+1. DETECÇÃO DE CANAL WHATSAPP:
+   - Para pedidos WooCommerce: verifica meta "_ppwoo_channel" == "whatsapp"
+   - Para pedidos externos: verifica campo "channel" ou "source" == "whatsapp"
+   - Filtro disponível: apply_filters('ppwoo_is_whatsapp_order', null, $order)
+
+2. FORMATO DE VALORES:
+   - Valores monetários devem ser strings formatadas (ex: "150.00")
+   - CPF e telefones devem ser strings (podem ser sanitizados para apenas dígitos)
+
+3. IMAGENS:
+   - URLs de imagens devem ser absolutas
+   - Tamanho recomendado: thumbnail (48x48px no painel)
+
+4. WORKFLOW:
+   - step1: Pedido pendente (botão "Aceitar Pedido")
+   - step2: Pedido aceito (formulário de detalhes de envio)
+
+5. MÉTODO DE ENVIO:
+   - Determina se o pedido aparece na aba "Motoboy" ou "Correios"
+   - Ver seção "REGRAS DE SEPARAÇÃO POR ABA (MOTOBOY vs CORREIOS)" para detalhes completos
+   - Resumo: Motoboy = status "processing" + method_title contém "motoboy" (case-insensitive)
+   - Resumo: Correios = status "on-hold" + (sem método OU method_title não contém "motoboy")
+
+================================================================================
+FIM DO CONTRATO
+================================================================================

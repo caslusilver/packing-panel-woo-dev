@@ -96,6 +96,39 @@ class PPWOO_Utils {
             );
         }, $order->get_items());
     }
+    
+    /**
+     * Verifica se um pedido é do WhatsApp
+     * 
+     * @param WC_Order|array $order Objeto do pedido WooCommerce ou array de pedido externo
+     * @return bool
+     */
+    public static function is_whatsapp_order($order) {
+        // Filtro para permitir customização da detecção
+        $is_whatsapp = apply_filters('ppwoo_is_whatsapp_order', null, $order);
+        
+        if ($is_whatsapp !== null) {
+            return (bool) $is_whatsapp;
+        }
+        
+        // Para pedidos WooCommerce
+        if ($order instanceof WC_Order) {
+            $channel = $order->get_meta('_ppwoo_channel');
+            return $channel === 'whatsapp';
+        }
+        
+        // Para pedidos externos (array)
+        if (is_array($order)) {
+            if (isset($order['channel']) && $order['channel'] === 'whatsapp') {
+                return true;
+            }
+            if (isset($order['source']) && $order['source'] === 'whatsapp') {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
 
 

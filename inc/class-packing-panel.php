@@ -171,6 +171,12 @@ class PPWOO_PackingPanel {
             ['dashicons'],
             $version
         );
+        
+        // Injeta CSS dinâmico baseado nas configurações de estilo
+        $dynamic_css = PPWOO_Style::generate_css();
+        wp_add_inline_style('packing-panel-woo', $dynamic_css);
+        
+        PPWOO_Debug::info('CSS dinâmico injetado no painel');
 
         // JS do painel
         wp_enqueue_script(

@@ -80,7 +80,7 @@ class PPWOO_Webhook {
                 '_packing_panel_motoboy_whatsapp' => $order->get_meta('_packing_panel_motoboy_whatsapp'),
             ),
             'items' => $items_payload,
-            'coupons' => $order->get_used_coupons(),
+            'coupons' => $order->get_coupon_codes(),
         );
     }
     

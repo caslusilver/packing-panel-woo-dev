@@ -31,7 +31,7 @@ if (PPWOO_Config::is_debug()) {
 
 <div class="painel-empacotamento">
     <header class="painel-header">
-        <h1><?php esc_html_e('Painel de Empacotamento', 'painel-empacotamento'); ?></h1>
+        <h1><?php esc_html_e('PackPanel', 'painel-empacotamento'); ?></h1>
         <div class="status-info">
             <span class="pendentes"><?php printf(esc_html__('%d pedidos pendentes', 'painel-empacotamento'), $total_pending_orders); ?></span>
         </div>
@@ -225,17 +225,22 @@ if (PPWOO_Config::is_debug()) {
                         <div class="pedido-container carousel-item" data-order-id="<?php echo esc_attr($order_id); ?>">
                             <div class="order-header">
                                 <h3>Pedido #<?php echo esc_html($order_id); ?></h3>
-                                <span class="metodo-envio correios">
-                                    <?php
-                                    $shipping_methods = $order->get_shipping_methods();
-                                    if (!empty($shipping_methods)) {
-                                        $first_method = reset($shipping_methods);
-                                        echo esc_html($first_method->get_method_title());
-                                    } else {
-                                        esc_html_e('Frete não especificado', 'painel-empacotamento');
-                                    }
-                                    ?>
-                                </span>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span class="metodo-envio correios">
+                                        <?php
+                                        $shipping_methods = $order->get_shipping_methods();
+                                        if (!empty($shipping_methods)) {
+                                            $first_method = reset($shipping_methods);
+                                            echo esc_html($first_method->get_method_title());
+                                        } else {
+                                            esc_html_e('Frete não especificado', 'painel-empacotamento');
+                                        }
+                                        ?>
+                                    </span>
+                                    <?php if (PPWOO_Utils::is_whatsapp_order($order)) : ?>
+                                        <span class="ppwoo-whatsapp-badge"><?php esc_html_e('WhatsApp', 'painel-empacotamento'); ?></span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
                             <div class="order-client-info">
@@ -298,7 +303,7 @@ if (PPWOO_Config::is_debug()) {
                             </div>
 
                             <?php
-                            $used_coupons = $order->get_used_coupons();
+                            $used_coupons = $order->get_coupon_codes();
                             if (!empty($used_coupons)) :
                                 ?>
                                 <div class="order-coupons">

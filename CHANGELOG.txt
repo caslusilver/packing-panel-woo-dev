@@ -7,6 +7,248 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.3.0 - [Data: 2025-01-XX]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Refatoração completa: renomeado para PackPanel com nova identidade visual
+- Adicionada página de configurações no wp-admin com abas Estilo e Conexão
+- Implementado sistema de estilos dinâmicos via CSS variables
+- Preparada integração com webhooks externos (GET JSON)
+- Adicionado badge WhatsApp com detecção configurável
+- Corrigido uso obsoleto de cupons (get_used_coupons → get_coupon_codes)
+- Criada classe de debug encapsulada (PPWOO_Debug)
+- Gerado contrato de campos para integração externa
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES ADICIONADAS:
+--------------------------------------------------------------------------------
+
+1. MENU PACKPANEL NO WP-ADMIN
+   - Arquivo: inc/admin/class-admin-menu.php
+   - Descrição: Novo menu "PackPanel" no wp-admin com interface de abas
+   - Funcionalidades:
+     * Aba "Estilo": Configurações visuais do painel
+     * Aba "Conexão": Configuração e teste de webhook
+     * UI no padrão WordPress (nav-tab-wrapper)
+
+2. CONFIGURAÇÕES DE ESTILO
+   - Arquivo: inc/core/class-style.php, inc/admin/class-admin-style-tab.php
+   - Descrição: Sistema completo de personalização visual
+   - Opções disponíveis:
+     * Cor do texto
+     * Cor do fundo do cabeçalho
+     * Tamanho da fonte do título
+     * Tamanho da fonte das informações
+     * Espessura da fonte
+     * Cor da tag WhatsApp
+     * Cores das etapas (step1/step2)
+   - Armazenamento: Option única (ppwoo_style_settings)
+   - Aplicação: CSS dinâmico via wp_add_inline_style com CSS variables
+
+3. CONFIGURAÇÃO DE WEBHOOK
+   - Arquivo: inc/admin/class-admin-connection-tab.php
+   - Descrição: Gerenciamento de URL do webhook
+   - Funcionalidades:
+     * Campo para configurar URL do webhook
+     * Botão "Testar Webhook" com AJAX
+     * Exibe status, latência e preview da resposta
+     * Validação de URL e sanitização
+
+4. CLIENT DE WEBHOOK
+   - Arquivo: inc/integrations/class-webhook-client.php
+   - Descrição: Classe para fazer requisições GET JSON ao webhook
+   - Funcionalidades:
+     * Método fetch() para requisições genéricas
+     * Método fetch_external_orders() para buscar pedidos externos
+     * Logs de debug integrados
+     * Tratamento de erros e timeouts
+
+5. BADGE WHATSAPP
+   - Arquivo: templates/painel.php, inc/core/class-utils.php, assets/css/panel.css
+   - Descrição: Badge visual para identificar pedidos do WhatsApp
+   - Funcionalidades:
+     * Badge compacto com border-radius e contraste
+     * Detecção via meta _ppwoo_channel (WooCommerce)
+     * Detecção via campo channel/source (pedidos externos)
+     * Filtro aplicável: ppwoo_is_whatsapp_order
+     * Cor customizável via configurações de estilo
+
+6. CLASSE DE DEBUG
+   - Arquivo: inc/core/class-debug.php
+   - Descrição: Sistema encapsulado de logging
+   - Métodos:
+     * info(): Log de informação
+     * warn(): Log de aviso
+     * error(): Log de erro
+     * timed(): Log com tempo de execução
+   - Características:
+     * Prefixo único: "PPWOO:"
+     * Respeita PPWOO_Config::is_debug()
+     * Integrado em todos os novos fluxos
+
+7. CONTRATO DE CAMPOS
+   - Arquivo: external-order-contract.txt
+   - Descrição: Documentação completa dos campos usados pelo painel
+   - Conteúdo:
+     * Lista de todos os campos WooCommerce lidos
+     * Meta campos customizados
+     * Sugestões de chaves JSON para webhook
+     * Estrutura detalhada de `shipping_methods` (method_title/method_id/total)
+     * Regra atual de separação por aba (Motoboy vs Correios): status + `shipping_methods[0].method_title` contém "motoboy" (case-insensitive)
+     * Exemplos de payload para Motoboy, Correios e Correios sem método de envio
+     * Estrutura JSON sugerida
+     * Notas importantes sobre formato
+
+--------------------------------------------------------------------------------
+CORREÇÕES REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. CUPONS OBSOLETOS
+   - Arquivos: templates/painel.php, inc/core/class-webhook.php
+   - Problema: Uso de get_used_coupons() (método obsoleto)
+   - Solução: Substituído por get_coupon_codes() em todas as ocorrências
+   - Impacto: Remove warnings de depreciação
+
+--------------------------------------------------------------------------------
+MELHORIAS REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. RENOMEAÇÃO E IDENTIDADE VISUAL
+   - Arquivo: templates/painel.php, assets/css/panel.css
+   - Mudança: Título alterado de "Painel de Empacotamento" para "PackPanel"
+   - CSS: Título agora usa variável --ppwoo-title-font-size (default: 0.9em, 50% do tamanho anterior)
+   - Remoção: Estilos inline desnecessários
+
+2. CSS DINÂMICO
+   - Arquivo: inc/class-packing-panel.php, inc/core/class-style.php
+   - Mudança: CSS variables injetadas via wp_add_inline_style
+   - Benefício: Personalização em tempo real sem editar arquivos CSS
+   - Integração: Aplicado automaticamente quando o painel é carregado
+
+3. INTEGRAÇÃO DE DEBUG
+   - Arquivos: Múltiplos
+   - Mudança: PPWOO_Debug integrado em:
+     * Teste de webhook
+     * Geração de CSS dinâmico
+     * Fetch de pedidos externos
+     * Detecção WhatsApp
+   - Benefício: Logs padronizados e fáceis de filtrar
+
+--------------------------------------------------------------------------------
+ARQUIVOS CRIADOS:
+--------------------------------------------------------------------------------
+
+1. inc/core/class-debug.php
+   - Tamanho: ~90 linhas
+   - Função: Sistema de logging encapsulada
+
+2. inc/core/class-style.php
+   - Tamanho: ~120 linhas
+   - Função: Geração de CSS dinâmico e gerenciamento de configurações
+
+3. inc/admin/class-admin-menu.php
+   - Tamanho: ~80 linhas
+   - Função: Menu principal do wp-admin
+
+4. inc/admin/class-admin-style-tab.php
+   - Tamanho: ~150 linhas
+   - Função: Aba de configurações de estilo
+
+5. inc/admin/class-admin-connection-tab.php
+   - Tamanho: ~150 linhas
+   - Função: Aba de configuração de webhook
+
+6. inc/integrations/class-webhook-client.php
+   - Tamanho: ~120 linhas
+   - Função: Client para requisições GET JSON
+
+7. assets/css/admin.css
+   - Tamanho: ~20 linhas
+   - Função: Estilos da página de admin
+
+8. assets/js/admin.js
+   - Tamanho: ~60 linhas
+   - Função: JavaScript para interações do admin
+
+9. external-order-contract.txt
+   - Tamanho: ~400 linhas
+   - Função: Documentação de campos para integração
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. packing-panel-woo-dev.php
+   - Versão atualizada: 0.2.3 → 0.3.0
+   - Adicionado: Require das novas classes
+   - Adicionado: Inicialização do menu admin
+   - Adicionado: Handler AJAX para teste de webhook
+
+2. templates/painel.php
+   - Alterado: Título para "PackPanel"
+   - Alterado: get_used_coupons() → get_coupon_codes() (2 ocorrências)
+   - Adicionado: Badge WhatsApp no cabeçalho dos pedidos
+
+3. assets/css/panel.css
+   - Adicionado: Variável CSS --ppwoo-title-font-size
+   - Alterado: h1 usa variável CSS (default: 0.9em)
+   - Adicionado: Estilos para badge WhatsApp
+
+4. inc/core/class-webhook.php
+   - Alterado: get_used_coupons() → get_coupon_codes()
+
+5. inc/core/class-utils.php
+   - Adicionado: Método is_whatsapp_order() com filtro
+
+6. inc/class-packing-panel.php
+   - Adicionado: Injeção de CSS dinâmico em enqueue_panel_assets()
+   - Adicionado: Log de debug para CSS dinâmico
+
+7. external-order-contract.txt
+   - Expandido: `shipping_methods` agora documenta fields (method_title/method_id/total)
+   - Adicionado: Seção "REGRAS DE SEPARAÇÃO POR ABA (MOTOBOY vs CORREIOS)" (status + contains("motoboy") no primeiro método)
+   - Adicionado: Exemplos JSON (Motoboy, Correios e Correios sem método de envio)
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. CONFIGURAÇÕES DE ESTILO:
+   - Armazenadas em: wp_options (option_name: ppwoo_style_settings)
+   - Formato: Array associativo com valores sanitizados
+   - Aplicação: CSS variables injetadas via wp_add_inline_style
+   - Fallback: Valores padrão definidos em PPWOO_Style::get_defaults()
+
+2. WEBHOOK:
+   - URL armazenada em: wp_options (option_name: ppwoo_webhook_url)
+   - Fallback: PPWOO_Config::get_webhook_url()
+   - Teste: Requisição GET com timeout de 15s
+   - Logs: Via PPWOO_Debug quando debug ativo
+
+3. DETECÇÃO WHATSAPP:
+   - Filtro: apply_filters('ppwoo_is_whatsapp_order', null, $order)
+   - WooCommerce: Meta _ppwoo_channel == 'whatsapp'
+   - Externo: Campo 'channel' ou 'source' == 'whatsapp'
+   - Badge: Cor customizável via configurações de estilo
+
+4. DEBUG:
+   - Prefixo: "PPWOO:"
+   - Níveis: [INFO], [WARN], [ERROR], [TIMED]
+   - Localização: wp-content/debug.log (quando WP_DEBUG_LOG ativo)
+   - Controle: PPWOO_Config::is_debug()
+
+--------------------------------------------------------------------------------
+PRÓXIMAS ATUALIZAÇÕES SUGERIDAS:
+--------------------------------------------------------------------------------
+
+1. Implementar adaptador de pedido para renderizar pedidos externos
+2. Adicionar suporte a múltiplos webhooks
+3. Implementar cache de configurações de estilo
+4. Adicionar preview em tempo real das configurações de estilo
+5. Implementar importação/exportação de configurações
+
+================================================================================
 VERSÃO 0.2.3 - [Data: 2025-12-11]
 ================================================================================
 
