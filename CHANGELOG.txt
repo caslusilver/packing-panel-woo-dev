@@ -7,6 +7,39 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.2.3 - [Data: 2025-12-11]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Correção: detecção do WooCommerce mais robusta (evita falso negativo em alguns cenários)
+
+--------------------------------------------------------------------------------
+CORREÇÕES REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. DETECÇÃO DO WOOCOMMERCE (BUGFIX)
+   - Arquivo: inc/class-packing-panel.php
+   - Problema: Em alguns ambientes/ordens de carregamento, `class_exists('WooCommerce')`
+              pode retornar false mesmo com WooCommerce ativo, bloqueando o painel.
+   - Solução: Implementado helper `is_woocommerce_active()` com múltiplos checks:
+     * function_exists('WC')
+     * class_exists('WooCommerce')
+     * class_exists('Automattic\\WooCommerce\\Plugin')
+     * is_plugin_active('woocommerce/woocommerce.php') quando disponível
+   - Impacto: Reduz falsos “WooCommerce não encontrado” nos logs e libera o painel quando o Woo está ativo.
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. inc/class-packing-panel.php
+   - Adicionado: is_woocommerce_active()
+   - Alterado: checks de WooCommerce em init() e render_shortcode()
+
+2. packing-panel-woo-dev.php
+   - Versão atualizada: 0.2.2 → 0.2.3
+
+================================================================================
 VERSÃO 0.2.2 - [Data: 2025-12-11]
 ================================================================================
 

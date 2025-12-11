@@ -3,7 +3,7 @@
  * Plugin Name: Painel de Empacotamento Woo
  * Plugin URI: https://github.com/caslusilver/packing-panel-woo-dev
  * Description: Painel administrativo de empacotamento para pedidos via WooCommerce, com abas Motoboy e Correios, workflow e integração com webhooks externos.
- * Version: 0.2.2
+ * Version: 0.2.3
  * Author: Lucas Andrade / AI
  * Author URI: https://github.com/caslusilver
  * License: GPL2

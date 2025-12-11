@@ -14,6 +14,36 @@ if (!defined('ABSPATH')) exit;
 class PPWOO_PackingPanel {
 
     /**
+     * Verifica se WooCommerce está instalado e ativo.
+     *
+     * Observação: `class_exists('WooCommerce')` pode falhar em alguns contextos
+     * dependendo da ordem de carregamento. A função `WC()` costuma ser o sinal
+     * mais confiável quando o plugin está ativo.
+     */
+    private static function is_woocommerce_active() {
+        // Sinal mais confiável (WooCommerce ativo)
+        if (function_exists('WC')) {
+            return true;
+        }
+
+        // Fallbacks comuns
+        if (class_exists('WooCommerce')) {
+            return true;
+        }
+
+        if (class_exists('Automattic\WooCommerce\Plugin')) {
+            return true;
+        }
+
+        // Verificação via "plugin ativo" (nem sempre disponível no frontend)
+        if (function_exists('is_plugin_active') && is_plugin_active('woocommerce/woocommerce.php')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Inicializa os hooks principais.
      */
     public static function init() {
@@ -22,9 +52,14 @@ class PPWOO_PackingPanel {
         }
         
         // Verifica se WooCommerce está ativo
-        if (!class_exists('WooCommerce')) {
+        if (!self::is_woocommerce_active()) {
             if (PPWOO_Config::is_debug()) {
-                error_log('PPWOO: WooCommerce não encontrado, exibindo aviso');
+                error_log(
+                    'PPWOO: WooCommerce não encontrado, exibindo aviso (checks: WC()='
+                    . (function_exists('WC') ? 'sim' : 'não')
+                    . ', WooCommerceClass=' . (class_exists('WooCommerce') ? 'sim' : 'não')
+                    . ')'
+                );
             }
             add_action('admin_notices', [__CLASS__, 'woocommerce_missing_notice']);
             return;
@@ -192,7 +227,7 @@ class PPWOO_PackingPanel {
         }
 
         // Verifica se WooCommerce está ativo
-        if (!class_exists('WooCommerce')) {
+        if (!self::is_woocommerce_active()) {
             if (PPWOO_Config::is_debug()) {
                 error_log('PPWOO: WooCommerce não está ativo');
             }
