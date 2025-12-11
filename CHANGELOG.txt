@@ -7,6 +7,131 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.2.1 - [Data: 2025-12-11]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Melhorado sistema de refresh de cache com plugin_row_meta
+- Implementadas notificações elegantes do WordPress no lugar de alert()
+- Melhorado carregamento de assets com fallbacks para Gutenberg e page builders
+- Adicionado sistema extensivo de logs de debug para diagnóstico
+- Melhorada verificação de shortcode com múltiplos fallbacks
+
+--------------------------------------------------------------------------------
+MELHORIAS REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. REFRESH DE CACHE - MIGRAÇÃO PARA plugin_row_meta
+   - Arquivo: inc/admin-refresh-cache.php
+   - Mudança: Trocado plugin_action_links por plugin_row_meta
+   - Benefício: Botão agora aparece abaixo da descrição do plugin (padrão WordPress)
+   - Melhorias:
+     * Verificação se Git Updater está disponível antes de exibir botão
+     * HTML melhorado com ícone Dashicons e spinner do WordPress
+     * Verificações mais robustas no endpoint AJAX
+     * Tratamento de Exception e Error separados
+     * Logs de debug quando PPWOO_DEBUG_MODE está ativo
+
+2. NOTIFICAÇÕES ELEGANTES NO ADMIN
+   - Arquivo: assets/js/admin-refresh-cache.js
+   - Mudança: Substituído alert() por notificações do WordPress
+   - Funcionalidades:
+     * Função ppwooNotice() para notificações reutilizáveis
+     * Notificações com estilo notice-success e notice-error
+     * Auto-dismiss após 5s (sucesso) ou 10s (erro)
+     * Botão de dismiss manual
+     * Scroll suave até a notificação
+     * Melhor tratamento de erros HTTP (403, conexão, etc.)
+     * Spinner do WordPress integrado
+
+3. CARREGAMENTO DE ASSETS MELHORADO
+   - Arquivo: inc/class-packing-panel.php
+   - Mudança: Verificação de shortcode aprimorada com fallbacks
+   - Melhorias:
+     * Suporte a blocos Gutenberg (parse_blocks)
+     * Verificação em meta fields para page builders
+     * Logs de debug em cada etapa do carregamento
+     * Verificações de post e conteúdo antes de carregar
+     * Logs quando assets não carregam (com motivo)
+
+4. SISTEMA DE LOGS DE DEBUG
+   - Arquivo: inc/class-packing-panel.php
+   - Adicionado: Logs extensivos em pontos críticos
+   - Logs implementados em:
+     * Método init() - rastreia inicialização
+     * Método enqueue_panel_assets() - diagnostica carregamento
+     * Método render_shortcode() - rastreia renderização
+     * Endpoint AJAX de refresh cache
+   - Formato: Todos os logs usam prefixo "PPWOO:" para fácil identificação
+   - Localização: wp-content/debug.log (quando WP_DEBUG_LOG está ativo)
+
+5. VERIFICAÇÃO DE SHORTCODE ROBUSTA
+   - Arquivo: inc/class-packing-panel.php
+   - Melhorias:
+     * Verificação de post existente
+     * Fallback para Gutenberg blocks
+     * Fallback para meta fields
+     * Logs detalhados quando shortcode não é encontrado
+     * Verificação de WooCommerce antes de renderizar
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. inc/admin-refresh-cache.php
+   - Trocado: plugin_action_links → plugin_row_meta
+   - Adicionado: Verificação de Git Updater antes de exibir botão
+   - Melhorado: HTML do botão com Dashicons e spinner
+   - Melhorado: Tratamento de erros com Exception e Error
+   - Adicionado: Logs de debug
+
+2. assets/js/admin-refresh-cache.js
+   - Reescrito: Substituído alert() por notificações WordPress
+   - Adicionado: Função ppwooNotice() reutilizável
+   - Melhorado: UX com auto-dismiss e scroll suave
+   - Melhorado: Tratamento de erros HTTP
+
+3. inc/class-packing-panel.php
+   - Melhorado: Método enqueue_panel_assets() com fallbacks
+   - Adicionado: Logs de debug em métodos críticos
+   - Melhorado: Método render_shortcode() com mais verificações
+   - Adicionado: Logs no método init()
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. LOGS DE DEBUG:
+   - Ative WP_DEBUG_LOG no wp-config.php para ver logs
+   - Todos os logs usam prefixo "PPWOO:" para filtragem fácil
+   - Logs aparecem em wp-content/debug.log
+   - Requer PPWOO_DEBUG_MODE = true no arquivo principal
+
+2. PLUGIN_ROW_META:
+   - Botão agora aparece na linha de meta (abaixo da descrição)
+   - Mais consistente com padrões do WordPress
+   - Melhor UX para usuários
+
+3. FALLBACKS DE SHORTCODE:
+   - Suporta shortcode em conteúdo tradicional
+   - Suporta shortcode em blocos Gutenberg
+   - Suporta shortcode via meta fields (page builders)
+   - Logs ajudam a diagnosticar quando shortcode não é detectado
+
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: (pendente)
+Data: 2025-12-11
+Mensagem: feat: melhora refresh cache, notificações e carregamento de assets (v0.2.1)
+Arquivos:
+  - inc/admin-refresh-cache.php (modificado)
+  - assets/js/admin-refresh-cache.js (reescrito)
+  - inc/class-packing-panel.php (melhorado)
+  - CHANGELOG.txt (atualizado)
+
+================================================================================
 VERSÃO 0.2.0 - [Data: 2025-12-11]
 ================================================================================
 

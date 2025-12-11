@@ -17,10 +17,21 @@ class PPWOO_PackingPanel {
      * Inicializa os hooks principais.
      */
     public static function init() {
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Inicializando classe PackingPanel');
+        }
+        
         // Verifica se WooCommerce está ativo
         if (!class_exists('WooCommerce')) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: WooCommerce não encontrado, exibindo aviso');
+            }
             add_action('admin_notices', [__CLASS__, 'woocommerce_missing_notice']);
             return;
+        }
+
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: WooCommerce encontrado, registrando hooks');
         }
 
         // Shortcode principal do painel (usa o mesmo nome do código antigo)
@@ -31,6 +42,10 @@ class PPWOO_PackingPanel {
 
         // AJAX handler para webhooks internos
         add_action('wp_ajax_' . PPWOO_Config::AJAX_ACTION, [__CLASS__, 'handle_internal_ajax']);
+        
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Hooks registrados com sucesso');
+        }
     }
 
     /**
@@ -49,9 +64,64 @@ class PPWOO_PackingPanel {
     public static function enqueue_panel_assets() {
         global $post;
         
-        // Verifica se estamos em uma página singular e se o shortcode está presente
-        if (!is_singular() || !$post || !has_shortcode($post->post_content, PPWOO_Config::SHORTCODE_TAG)) {
+        // Log de debug inicial
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Verificando carregamento de assets - is_singular: ' . (is_singular() ? 'sim' : 'não'));
+        }
+        
+        // Verifica se estamos em uma página singular
+        if (!is_singular()) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: Assets não carregados - não é página singular');
+            }
             return;
+        }
+        
+        // Verifica se o post existe
+        if (!$post || !isset($post->ID)) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: Assets não carregados - post não encontrado');
+            }
+            return;
+        }
+        
+        // Verifica se o shortcode está presente no conteúdo
+        $has_shortcode = has_shortcode($post->post_content, PPWOO_Config::SHORTCODE_TAG);
+        
+        // Fallback: verifica também em meta fields e conteúdo processado
+        if (!$has_shortcode) {
+            // Verifica se o shortcode pode estar em blocos Gutenberg ou conteúdo processado
+            $content_to_check = $post->post_content;
+            
+            // Se usar Gutenberg, verifica também o conteúdo renderizado
+            if (has_blocks($post->post_content)) {
+                $blocks = parse_blocks($post->post_content);
+                foreach ($blocks as $block) {
+                    if (isset($block['innerHTML']) && strpos($block['innerHTML'], '[' . PPWOO_Config::SHORTCODE_TAG . ']') !== false) {
+                        $has_shortcode = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Verifica também em meta fields (caso seja usado em page builders)
+            if (!$has_shortcode) {
+                $meta_content = get_post_meta($post->ID, '_ppwoo_has_shortcode', true);
+                if ($meta_content === 'yes') {
+                    $has_shortcode = true;
+                }
+            }
+        }
+        
+        if (!$has_shortcode) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: Assets não carregados - shortcode [' . PPWOO_Config::SHORTCODE_TAG . '] não encontrado no post #' . $post->ID);
+            }
+            return;
+        }
+        
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Carregando assets do painel para o post #' . $post->ID);
         }
 
         $version = painel_empacotamento_get_version();
@@ -99,15 +169,34 @@ class PPWOO_PackingPanel {
             'copy_error' => esc_html__('Falha ao copiar.', 'painel-empacotamento'),
             'debug_enabled' => PPWOO_Config::is_debug(),
         ]);
+        
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Assets do painel carregados com sucesso para o post #' . $post->ID);
+        }
     }
 
     /**
      * SHORTCODE principal — Exibe o painel administrativo completo.
      */
     public static function render_shortcode($atts) {
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Shortcode [packing_panel] chamado');
+        }
+        
         // Verifica permissões
         if (!PPWOO_Security::can_manage_panel()) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: Acesso negado ao painel - usuário sem permissão');
+            }
             return '<p>' . esc_html__('Você não tem permissão para visualizar este painel.', 'painel-empacotamento') . '</p>';
+        }
+
+        // Verifica se WooCommerce está ativo
+        if (!class_exists('WooCommerce')) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: WooCommerce não está ativo');
+            }
+            return '<p style="color:red;">' . esc_html__('Erro: WooCommerce não está instalado ou ativo.', 'painel-empacotamento') . '</p>';
         }
 
         ob_start();
@@ -116,12 +205,24 @@ class PPWOO_PackingPanel {
         $template = plugin_dir_path(__FILE__) . '../templates/painel.php';
 
         if (file_exists($template)) {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: Template encontrado, renderizando painel');
+            }
             include $template;
         } else {
+            if (PPWOO_Config::is_debug()) {
+                error_log('PPWOO: ERRO - Template painel.php não encontrado em: ' . $template);
+            }
             echo '<p style="color:red;">Erro: O template painel.php não foi encontrado em /templates/</p>';
         }
 
-        return ob_get_clean();
+        $output = ob_get_clean();
+        
+        if (PPWOO_Config::is_debug()) {
+            error_log('PPWOO: Shortcode renderizado com sucesso (tamanho: ' . strlen($output) . ' bytes)');
+        }
+        
+        return $output;
     }
 
     /**
