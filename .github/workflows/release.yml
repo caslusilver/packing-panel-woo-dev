@@ -1,5 +1,8 @@
 name: Auto Tag & Release for WordPress Plugin
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -14,11 +17,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Detect plugin version from main file
+    - name: Read plugin version from main plugin file
       id: get_version
       run: |
         PLUGIN_FILE=$(grep -rl "Plugin Name:" --include="*.php" .)
+        echo "Plugin file found: $PLUGIN_FILE"
+
         VERSION=$(grep -i "Version:" "$PLUGIN_FILE" | head -n 1 | awk -F': ' '{print $2}' | tr -d '\r')
+        echo "Detected version: $VERSION"
+
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "plugin_file=$PLUGIN_FILE" >> $GITHUB_OUTPUT
 
@@ -37,8 +44,11 @@ jobs:
               ref: `tags/${tag}`
             });
             core.setOutput("tag_exists", "true");
+            console.log(`Tag ${tag} já existe. Pulando criação.`);
             return;
-          } catch (_) {}
+          } catch (e) {
+            console.log(`Tag ${tag} não existe. Criando...`);
+          }
 
           await github.rest.git.createRef({
             owner: context.repo.owner,
@@ -46,6 +56,8 @@ jobs:
             ref: `refs/tags/${tag}`,
             sha: context.sha
           });
+
+          console.log(`Tag ${tag} criada com sucesso.`);
       env:
         VERSION: ${{ steps.get_version.outputs.version }}
 
@@ -56,6 +68,10 @@ jobs:
         tag_name: v${{ steps.get_version.outputs.version }}
         name: "Release v${{ steps.get_version.outputs.version }}"
         body: |
-          Release automática gerada pelo GitHub Actions.
-          Arquivo principal: ${{ steps.get_version.outputs.plugin_file }}
+          🚀 **Release automática do plugin WordPress**
+
+          **Versão detectada:** v${{ steps.get_version.outputs.version }}
+          **Arquivo principal:** `${{ steps.get_version.outputs.plugin_file }}`
+
+          Esta release foi gerada automaticamente após um push na branch **develop**.
 

@@ -1,0 +1,216 @@
+================================================================================
+CHANGELOG - Painel de Empacotamento Woo
+Guia de Atualizações e Correções
+================================================================================
+
+Este arquivo documenta todas as atualizações, correções e melhorias realizadas
+no plugin para facilitar a criação de commits e releases futuras.
+
+================================================================================
+VERSÃO 0.2.0 - [Data: 2025-12-11]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Adicionada funcionalidade de refresh de cache do Git Updater
+- Implementado workflow GitHub Actions para releases automáticas
+- Adicionado toggle de debug para facilitar depuração
+- Corrigido erro de permissões no workflow do GitHub Actions
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES ADICIONADAS:
+--------------------------------------------------------------------------------
+
+1. REFRESH DE CACHE DO GIT UPDATER
+   - Arquivo: inc/admin-refresh-cache.php
+   - Descrição: Adiciona botão "Atualizar Cache" na lista de plugins do WordPress
+   - Funcionalidades:
+     * Botão na lista de ações do plugin (plugins.php)
+     * Endpoint AJAX com verificação de permissões (manage_options)
+     * Verificação de nonce para segurança
+     * Limpa cache do Git Updater via Singleton
+     * Executa wp_cron() após limpar cache
+   
+   - Arquivo: assets/js/admin-refresh-cache.js
+   - Descrição: Script JavaScript para interação do botão
+   - Funcionalidades:
+     * Clique no botão "Atualizar Cache"
+     * Feedback visual durante processamento (spinner)
+     * Mantém posição de scroll após atualização
+     * Exibe mensagens de sucesso/erro
+
+2. WORKFLOW GITHUB ACTIONS
+   - Arquivo: .github/workflows/release.yml
+   - Descrição: Automação para criar tags e releases automaticamente
+   - Funcionalidades:
+     * Detecta versão automaticamente do arquivo principal
+     * Cria tag no formato v{VERSÃO}
+     * Cria release no GitHub automaticamente
+     * Executa apenas na branch develop
+     * Verifica se tag já existe antes de criar
+     * Logs detalhados para debugging
+
+3. TOGGLE DE DEBUG
+   - Arquivo: packing-panel-woo-dev.php (linhas 18-29)
+   - Descrição: Constante para ativar/desativar debug facilmente
+   - Funcionalidades:
+     * Constante PPWOO_DEBUG_MODE no topo do arquivo
+     * Exibe erros PHP quando ativado
+     * Integrado com método is_debug() da classe Config
+     * Fácil de alterar sem modificar classes internas
+
+--------------------------------------------------------------------------------
+CORREÇÕES REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. CORREÇÃO DE INDENTAÇÃO YAML
+   - Arquivo: .github/workflows/release.yml
+   - Problema: Indentação incorreta do bloco env: causava erro de sintaxe
+   - Solução: Ajustada indentação do env: para alinhar com with:
+
+2. CORREÇÃO DE PERMISSÕES GITHUB ACTIONS
+   - Arquivo: .github/workflows/release.yml
+   - Problema: Erro "Resource not accessible by integration"
+   - Solução: Adicionada seção permissions: contents: write
+   - Impacto: Workflow agora pode criar tags e releases
+
+3. MELHORIAS NO WORKFLOW
+   - Adicionados logs informativos no step de detecção de versão
+   - Melhor tratamento de erros no script de criação de tag
+   - Mensagens de release mais completas e formatadas
+
+--------------------------------------------------------------------------------
+ARQUIVOS CRIADOS:
+--------------------------------------------------------------------------------
+
+1. inc/admin-refresh-cache.php
+   - Tamanho: ~66 linhas
+   - Função: Gerencia refresh de cache do Git Updater
+
+2. assets/js/admin-refresh-cache.js
+   - Tamanho: ~35 linhas
+   - Função: JavaScript para interação do botão de cache
+
+3. .github/workflows/release.yml
+   - Tamanho: ~78 linhas
+   - Função: Automação de releases no GitHub
+
+4. CHANGELOG.txt (este arquivo)
+   - Função: Documentação de atualizações
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. packing-panel-woo-dev.php
+   - Versão atualizada: 0.1.0 → 0.2.0
+   - Adicionado: Toggle de debug (PPWOO_DEBUG_MODE)
+   - Adicionado: Exibição de erros quando debug ativo
+   - Primary Branch atualizado: dev → develop
+
+2. inc/core/class-config.php
+   - Modificado: Método is_debug()
+   - Mudança: Agora verifica constante global PPWOO_DEBUG_MODE primeiro
+   - Fallback: Usa constante DEBUG da classe se global não existir
+
+3. .github/workflows/release.yml
+   - Adicionado: Permissões (contents: write)
+   - Melhorado: Logs e tratamento de erros
+   - Melhorado: Mensagem de release
+
+--------------------------------------------------------------------------------
+DEPENDÊNCIAS E REQUISITOS:
+--------------------------------------------------------------------------------
+
+1. Git Updater Plugin
+   - Necessário para funcionalidade de refresh de cache
+   - Se não instalado, botão aparecerá mas gerará erro ao clicar
+   - Classe: Fragen\Singleton
+   - Classe: Fragen\Git_Updater\Settings
+
+2. WordPress
+   - Versão mínima: Não especificada (compatível com versões recentes)
+   - Requer: WooCommerce instalado e ativo
+
+3. GitHub Actions
+   - Permissões necessárias: contents: write
+   - Branch configurada: develop
+
+--------------------------------------------------------------------------------
+INSTRUÇÕES DE USO:
+--------------------------------------------------------------------------------
+
+1. TOGGLE DE DEBUG:
+   - Localização: packing-panel-woo-dev.php (linha 22)
+   - Para ativar: define('PPWOO_DEBUG_MODE', true);
+   - Para desativar: define('PPWOO_DEBUG_MODE', false);
+   - ⚠️ IMPORTANTE: Sempre desative em produção!
+
+2. REFRESH DE CACHE:
+   - Acesse: WordPress Admin → Plugins
+   - Localize: "Painel de Empacotamento Woo"
+   - Clique: "Atualizar Cache" (novo botão na lista de ações)
+   - Requer: Permissão manage_options
+
+3. WORKFLOW DE RELEASES:
+   - Automático ao fazer push na branch develop
+   - Detecta versão do arquivo principal automaticamente
+   - Cria tag: v{VERSÃO}
+   - Cria release no GitHub
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. ESTRUTURA DE COMMITS:
+   - Formato: feat: descrição (v{VERSÃO})
+   - Exemplo: feat: adiciona refresh de cache e workflow de releases automáticas (v0.2.0)
+
+2. VERSIONAMENTO:
+   - Seguindo Semantic Versioning (MAJOR.MINOR.PATCH)
+   - Versão atual: 0.2.0
+   - Próxima versão sugerida: 0.2.1 (patch) ou 0.3.0 (minor)
+
+3. BRANCHES:
+   - main: Branch de produção
+   - develop: Branch de desenvolvimento (onde workflow executa)
+
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: 2626916
+Data: 2025-12-11 (11 minutos atrás)
+Mensagem: feat: adiciona refresh de cache e workflow de releases automáticas (v0.2.0)
+Arquivos:
+  - .github/workflows/release.yml (modificado)
+  - inc/core/class-config.php (modificado)
+  - packing-panel-woo-dev.php (modificado)
+
+Commit: 4c0f496
+Data: 2025-12-11 (2 horas atrás)
+Mensagem: feat: adiciona refresh de cache e workflow de releases automáticas
+Arquivos:
+  - inc/admin-refresh-cache.php (novo)
+  - assets/js/admin-refresh-cache.js (novo)
+  - .github/workflows/release.yml (novo)
+
+Commit: 8f48833
+Data: 2025-12-11 (3 horas atrás)
+Mensagem: Initial commit
+
+--------------------------------------------------------------------------------
+PRÓXIMAS ATUALIZAÇÕES SUGERIDAS:
+--------------------------------------------------------------------------------
+
+1. Adicionar verificação se Git Updater está instalado antes de exibir botão
+2. Adicionar testes unitários para funcionalidades críticas
+3. Melhorar tratamento de erros no refresh de cache
+4. Adicionar documentação de API
+5. Implementar cache de versão para evitar múltiplas requisições
+
+================================================================================
+FIM DO CHANGELOG v0.2.0
+================================================================================
+
+Para adicionar novas entradas, siga o formato acima e atualize a versão no topo.
+
