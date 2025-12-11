@@ -7,7 +7,7 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
-VERSÃO 0.3.0 - [Data: 2025-01-XX]
+VERSÃO 0.3.0 - [Data: 2025-12-11]
 ================================================================================
 
 RESUMO DA VERSÃO:
@@ -239,6 +239,31 @@ NOTAS TÉCNICAS:
    - Controle: PPWOO_Config::is_debug()
 
 --------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: 0913980
+Data: 2025-12-11 20:29:17
+Mensagem: feat: refatoração completa PackPanel v0.3.0 - admin menu, estilos dinâmicos, webhook client e badge WhatsApp
+Arquivos:
+  - packing-panel-woo-dev.php (versão atualizada, novos requires)
+  - CHANGELOG.txt (atualizado)
+  - templates/painel.php (renomeado para PackPanel, badge WhatsApp)
+  - assets/css/panel.css (CSS variables, estilos WhatsApp)
+  - assets/css/admin.css (novo)
+  - assets/js/admin.js (novo)
+  - inc/class-packing-panel.php (CSS dinâmico)
+  - inc/core/class-utils.php (is_whatsapp_order)
+  - inc/core/class-webhook.php (get_coupon_codes)
+  - inc/core/class-debug.php (novo)
+  - inc/core/class-style.php (novo)
+  - inc/admin/class-admin-menu.php (novo)
+  - inc/admin/class-admin-style-tab.php (novo)
+  - inc/admin/class-admin-connection-tab.php (novo)
+  - inc/integrations/class-webhook-client.php (novo)
+  - external-order-contract.txt (novo)
+
+================================================================================
 PRÓXIMAS ATUALIZAÇÕES SUGERIDAS:
 --------------------------------------------------------------------------------
 
