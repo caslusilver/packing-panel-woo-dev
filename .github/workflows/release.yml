@@ -46,8 +46,8 @@ jobs:
             ref: `refs/tags/${tag}`,
             sha: context.sha
           });
-        env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.version }}
 
     - name: Create GitHub Release
       if: steps.tag_creation.outputs.tag_exists != 'true'
