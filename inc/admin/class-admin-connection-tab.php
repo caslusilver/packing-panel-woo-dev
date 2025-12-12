@@ -12,20 +12,37 @@ class PPWOO_Admin_Connection_Tab {
     const OPTION_NAME = 'ppwoo_webhook_url';
     
     /**
+     * Nomes das options para webhook externo
+     */
+    const OPTION_EXTERNAL_URL = 'ppwoo_external_webhook_url';
+    const OPTION_EXTERNAL_METHOD = 'ppwoo_external_webhook_method';
+    const OPTION_EXTERNAL_AUTH_ENABLED = 'ppwoo_external_webhook_auth_enabled';
+    const OPTION_EXTERNAL_BEARER_TOKEN = 'ppwoo_external_webhook_bearer_token';
+    
+    /**
      * Renderiza o formulário da aba Conexão
      */
     public static function render() {
         // Processa o formulário se foi submetido
         if (isset($_POST['ppwoo_save_webhook']) && check_admin_referer('ppwoo_save_webhook', 'ppwoo_webhook_nonce')) {
             self::save_webhook_url();
+            self::save_external_webhook_settings();
         }
         
         $webhook_url = get_option(self::OPTION_NAME, PPWOO_Config::get_webhook_url());
+        
+        // Opções do webhook externo
+        $external_url = get_option(self::OPTION_EXTERNAL_URL, '');
+        $external_method = get_option(self::OPTION_EXTERNAL_METHOD, 'get');
+        $external_auth_enabled = get_option(self::OPTION_EXTERNAL_AUTH_ENABLED, 'no');
+        $external_bearer_token_raw = get_option(self::OPTION_EXTERNAL_BEARER_TOKEN, '');
+        $external_bearer_token_display = !empty($external_bearer_token_raw) ? '••••••••' : '';
         
         ?>
         <form method="post" action="">
             <?php wp_nonce_field('ppwoo_save_webhook', 'ppwoo_webhook_nonce'); ?>
             
+            <h2><?php esc_html_e('Webhook de Eventos', 'painel-empacotamento'); ?></h2>
             <table class="form-table">
                 <tr>
                     <th scope="row">
@@ -43,7 +60,68 @@ class PPWOO_Admin_Connection_Tab {
                 </tr>
             </table>
             
-            <?php submit_button(__('Salvar Webhook', 'painel-empacotamento')); ?>
+            <hr>
+            
+            <h2><?php esc_html_e('Webhook Externo (Consulta de Pedidos)', 'painel-empacotamento'); ?></h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="external_webhook_url"><?php esc_html_e('URL do Webhook Externo', 'painel-empacotamento'); ?></label>
+                    </th>
+                    <td>
+                        <input type="url" 
+                               id="external_webhook_url" 
+                               name="ppwoo_external_webhook_url" 
+                               value="<?php echo esc_url($external_url); ?>" 
+                               class="regular-text" 
+                               placeholder="https://exemplo.com/webhook-externo" />
+                        <p class="description"><?php esc_html_e('URL do webhook externo para consultar pedidos (ex: WhatsApp)', 'painel-empacotamento'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="external_webhook_method"><?php esc_html_e('Método HTTP', 'painel-empacotamento'); ?></label>
+                    </th>
+                    <td>
+                        <select id="external_webhook_method" name="ppwoo_external_webhook_method">
+                            <option value="get" <?php selected($external_method, 'get'); ?>><?php esc_html_e('GET', 'painel-empacotamento'); ?></option>
+                            <option value="post" <?php selected($external_method, 'post'); ?>><?php esc_html_e('POST', 'painel-empacotamento'); ?></option>
+                        </select>
+                        <p class="description"><?php esc_html_e('Método HTTP para a requisição. POST envia JSON no body.', 'painel-empacotamento'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="external_webhook_auth_enabled"><?php esc_html_e('Usar Autenticação', 'painel-empacotamento'); ?></label>
+                    </th>
+                    <td>
+                        <label>
+                            <input type="checkbox" 
+                                   id="external_webhook_auth_enabled" 
+                                   name="ppwoo_external_webhook_auth_enabled" 
+                                   value="yes" 
+                                   <?php checked($external_auth_enabled, 'yes'); ?> />
+                            <?php esc_html_e('Habilitar autenticação Bearer Token', 'painel-empacotamento'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr id="external_webhook_bearer_row" style="<?php echo $external_auth_enabled !== 'yes' ? 'display: none;' : ''; ?>">
+                    <th scope="row">
+                        <label for="external_webhook_bearer_token"><?php esc_html_e('Bearer Token', 'painel-empacotamento'); ?></label>
+                    </th>
+                    <td>
+                        <input type="password" 
+                               id="external_webhook_bearer_token" 
+                               name="ppwoo_external_webhook_bearer_token" 
+                               value="<?php echo esc_attr($external_bearer_token_display); ?>" 
+                               class="regular-text" 
+                               placeholder="<?php esc_attr_e('Token de autenticação', 'painel-empacotamento'); ?>" />
+                        <p class="description"><?php esc_html_e('Token Bearer para autenticação. Deixe em branco para manter o token atual.', 'painel-empacotamento'); ?></p>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button(__('Salvar Configurações', 'painel-empacotamento')); ?>
         </form>
         
         <hr>
@@ -58,6 +136,18 @@ class PPWOO_Admin_Connection_Tab {
         </button>
         
         <div id="ppwoo-webhook-test-result" style="margin-top: 15px; display: none;"></div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            $('#external_webhook_auth_enabled').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#external_webhook_bearer_row').show();
+                } else {
+                    $('#external_webhook_bearer_row').hide();
+                }
+            });
+        });
+        </script>
         <?php
     }
     
@@ -104,6 +194,66 @@ class PPWOO_Admin_Connection_Tab {
         }
         
         settings_errors('ppwoo_webhook');
+    }
+    
+    /**
+     * Salva as configurações do webhook externo
+     */
+    private static function save_external_webhook_settings() {
+        // URL externa
+        if (isset($_POST['ppwoo_external_webhook_url'])) {
+            $url = esc_url_raw($_POST['ppwoo_external_webhook_url']);
+            
+            if (!empty($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
+                add_settings_error(
+                    'ppwoo_external_webhook',
+                    'ppwoo_external_webhook_invalid',
+                    __('URL do webhook externo inválida.', 'painel-empacotamento'),
+                    'error'
+                );
+            } else {
+                update_option(self::OPTION_EXTERNAL_URL, $url);
+                PPWOO_Debug::info('URL do webhook externo salva', ['url' => $url]);
+            }
+        }
+        
+        // Método HTTP
+        if (isset($_POST['ppwoo_external_webhook_method'])) {
+            $method = sanitize_text_field($_POST['ppwoo_external_webhook_method']);
+            if (in_array($method, ['get', 'post'], true)) {
+                update_option(self::OPTION_EXTERNAL_METHOD, $method);
+                PPWOO_Debug::info('Método do webhook externo salvo', ['method' => $method]);
+            }
+        }
+        
+        // Autenticação habilitada
+        $auth_enabled = isset($_POST['ppwoo_external_webhook_auth_enabled']) && $_POST['ppwoo_external_webhook_auth_enabled'] === 'yes' ? 'yes' : 'no';
+        update_option(self::OPTION_EXTERNAL_AUTH_ENABLED, $auth_enabled);
+        
+        // Bearer Token (só atualiza se fornecido e não for placeholder)
+        if (isset($_POST['ppwoo_external_webhook_bearer_token'])) {
+            $token = sanitize_text_field($_POST['ppwoo_external_webhook_bearer_token']);
+            // Se não for o placeholder mascarado e não estiver vazio, salva o token
+            if (!empty($token) && $token !== '••••••••') {
+                update_option(self::OPTION_EXTERNAL_BEARER_TOKEN, $token);
+                PPWOO_Debug::info('Bearer token do webhook externo salvo');
+            }
+            // Se estiver vazio e auth estiver desabilitada, limpa o token
+            elseif (empty($token) && $auth_enabled === 'no') {
+                delete_option(self::OPTION_EXTERNAL_BEARER_TOKEN);
+            }
+        }
+        
+        if (!get_settings_errors('ppwoo_external_webhook')) {
+            add_settings_error(
+                'ppwoo_external_webhook',
+                'ppwoo_external_webhook_saved',
+                __('Configurações do webhook externo salvas com sucesso!', 'painel-empacotamento'),
+                'success'
+            );
+        }
+        
+        settings_errors('ppwoo_external_webhook');
     }
     
     /**

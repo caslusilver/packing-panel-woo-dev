@@ -416,6 +416,122 @@ EXEMPLO 3: PEDIDO CORREIOS (SEM MÉTODO DE ENVIO)
 }
 
 ================================================================================
+FORMATO ESPERADO DA RESPOSTA DO WEBHOOK EXTERNO
+================================================================================
+
+O webhook externo deve retornar um JSON com uma das seguintes estruturas:
+
+FORMATO 1: OBJETO COM ARRAY "orders"
+{
+  "orders": [
+    {
+      "id": 123,
+      "status": "processing",
+      ...
+    }
+  ]
+}
+
+FORMATO 2: ARRAY DIRETO DE PEDIDOS
+[
+  {
+    "id": 123,
+    "status": "processing",
+    ...
+  }
+]
+
+CAMPOS OBRIGATÓRIOS EM CADA PEDIDO:
+- "id" ou "order_id" (integer): ID único do pedido (OBRIGATÓRIO)
+- "status" (string): Status do pedido ("processing" para Motoboy, "on-hold" para Correios)
+
+CAMPOS OPCIONAIS MAS RECOMENDADOS:
+- "total" (float/string): Total do pedido
+- "shipping_total" (float/string): Total do frete
+- "billing" (objeto) ou campos "billing_*" (diretos): Dados de cobrança
+- "shipping_methods" (array): Métodos de envio
+- "items" (array): Itens do pedido
+- "channel" ou "source" (string): Canal de origem (ex: "whatsapp")
+
+ESTRUTURA DE "billing" (pode ser objeto ou campos diretos):
+Opção A - Objeto aninhado:
+{
+  "billing": {
+    "first_name": "João",
+    "last_name": "Silva",
+    "address_1": "Rua Exemplo",
+    "number": "123",
+    "neighborhood": "Centro",
+    "complement": "Apto 101",
+    "city": "São Paulo",
+    "state": "SP",
+    "postcode": "01234-567",
+    "cellphone": "11999999999",
+    "cpf": "12345678900"
+  }
+}
+
+Opção B - Campos diretos (billing_*):
+{
+  "billing_first_name": "João",
+  "billing_last_name": "Silva",
+  "billing_address_1": "Rua Exemplo",
+  "billing_number": "123",
+  "billing_neighborhood": "Centro",
+  "billing_complement": "Apto 101",
+  "billing_city": "São Paulo",
+  "billing_state": "SP",
+  "billing_postcode": "01234-567",
+  "billing_cellphone": "11999999999",
+  "billing_cpf": "12345678900"
+}
+
+ESTRUTURA DE "shipping_methods" (array de objetos):
+[
+  {
+    "method_id": "flat_rate",
+    "method_title": "Motoboy Express",  // IMPORTANTE: usado para classificação
+    "total": "15.00"
+  }
+]
+
+ESTRUTURA DE "items" (array de objetos):
+[
+  {
+    "product_id": 456,
+    "variation_id": 0,
+    "name": "Produto Exemplo",
+    "quantity": 2,
+    "total": "100.00",
+    "sku": "PROD-001",
+    "image_url": "https://exemplo.com/image.jpg"  // URL absoluta recomendada
+  }
+]
+
+VALIDAÇÃO E NORMALIZAÇÃO:
+- O sistema normaliza automaticamente ambos os formatos (objeto com "orders" ou array direto)
+- Campos faltantes são preenchidos com valores padrão (strings vazias, 0, arrays vazios)
+- IDs inválidos ou ausentes resultam em pedido ignorado (logado como warning)
+- Estruturas inesperadas são logadas mas não bloqueiam o processamento
+
+EXEMPLO DE RESPOSTA MÍNIMA VÁLIDA:
+{
+  "orders": [
+    {
+      "id": 123,
+      "status": "on-hold",
+      "billing": {
+        "first_name": "João",
+        "last_name": "Silva"
+      }
+    }
+  ]
+}
+
+EXEMPLO DE RESPOSTA COMPLETA (recomendado):
+Ver exemplos nas seções "EXEMPLO 1", "EXEMPLO 2" e "EXEMPLO 3" acima.
+
+================================================================================
 NOTAS IMPORTANTES
 ================================================================================
 

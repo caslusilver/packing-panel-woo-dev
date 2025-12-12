@@ -7,6 +7,152 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.3.1 - [Data: 2025-12-11]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Implementado webhook externo separado para consulta de pedidos (WhatsApp)
+- Suporte a métodos GET e POST com JSON body
+- Autenticação Bearer Token opcional
+- Normalização de payload conforme contrato de pedidos externos
+- Integração de pedidos externos no fluxo de renderização do painel
+- Logs encapsulados via PPWOO_Debug em todo o fluxo externo
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES ADICIONADAS:
+--------------------------------------------------------------------------------
+
+1. WEBHOOK EXTERNO (CONSULTA DE PEDIDOS)
+   - Arquivo: inc/admin/class-admin-connection-tab.php
+   - Descrição: Nova seção na aba Conexão para configurar webhook externo
+   - Funcionalidades:
+     * Campo URL separado para consulta externa
+     * Select método HTTP: GET ou POST
+     * Toggle "Usar autenticação" (Bearer Token)
+     * Campo Bearer Token (mascarado quando preenchido)
+     * Descrição informando que POST envia JSON body
+   - Opções salvas:
+     * ppwoo_external_webhook_url
+     * ppwoo_external_webhook_method (get|post)
+     * ppwoo_external_webhook_auth_enabled (yes|no)
+     * ppwoo_external_webhook_bearer_token
+
+2. CLIENT DE WEBHOOK EXTERNO COM GET/POST + BEARER
+   - Arquivo: inc/integrations/class-webhook-client.php
+   - Descrição: Refatoração completa do client para suportar GET/POST e autenticação
+   - Funcionalidades:
+     * Método fetch() atualizado:
+       - Lê configurações do webhook externo (não mais do webhook de eventos)
+       - GET: adiciona parâmetros na URL via add_query_arg()
+       - POST: envia JSON body via wp_remote_post()
+       - Header Authorization: Bearer <token> quando auth habilitada
+     * Logs detalhados:
+       - método, url (sem token), payload (sem token), status code, tempo, preview do body
+     * Parâmetros padrão: {"action":"get_orders","channel":"whatsapp"}
+
+3. NORMALIZAÇÃO DE PAYLOAD
+   - Arquivo: inc/integrations/class-webhook-client.php
+   - Descrição: Normalização de pedidos externos conforme external-order-contract.txt
+   - Funcionalidades:
+     * Método normalize_external_order():
+       - Aceita formatos: {orders: [...]} ou [...]
+       - Mapeia/normaliza chaves de pedidos externos para formato esperado
+       - Suporta billing.* e billing_* (campos diretos)
+       - Normaliza shipping_methods, items, coupons, meta campos
+       - Loga estruturas inesperadas via PPWOO_Debug::warn()
+     * Validação:
+       - Verifica se pedido é array
+       - Valida ID obrigatório
+       - Sanitiza todos os campos
+
+4. INTEGRAÇÃO DE PEDIDOS EXTERNOS NO PAINEL
+   - Arquivo: inc/core/class-orders.php, inc/core/class-utils.php, templates/painel.php
+   - Descrição: Mesclagem de pedidos WooCommerce e externos no fluxo de renderização
+   - Funcionalidades:
+     * PPWOO_Orders atualizado:
+       - get_motoboy_orders(): busca WooCommerce + externos e mescla
+       - get_correios_orders(): busca WooCommerce + externos e mescla
+       - get_external_orders(): busca pedidos do webhook externo (se configurado)
+       - classify_order(): classifica pedido em Motoboy ou Correios
+     * PPWOO_Utils expandido:
+       - is_external_order(): verifica se pedido é externo
+       - Funções auxiliares unificadas para WC_Order e arrays:
+         * get_order_id(), get_billing_*(), get_customer_note()
+         * get_order_total(), get_shipping_total(), get_coupon_codes()
+         * get_shipping_methods(), get_order_items(), get_workflow_step()
+     * Template atualizado:
+       - Usa funções auxiliares para acessar dados (compatível com WC_Order e arrays)
+       - Renderiza pedidos externos nas abas Motoboy e Correios
+       - Badge WhatsApp funciona para pedidos externos
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. inc/admin/class-admin-connection-tab.php
+   - Adicionado: Constantes para opções do webhook externo
+   - Adicionado: Seção "Webhook Externo (Consulta de Pedidos)" no formulário
+   - Adicionado: Campos URL, método GET/POST, toggle auth, campo Bearer Token
+   - Adicionado: JavaScript para mostrar/ocultar campo Bearer Token
+   - Adicionado: Método save_external_webhook_settings()
+   - Modificado: render() agora processa e exibe configurações externas
+
+2. inc/integrations/class-webhook-client.php
+   - Refatorado: get_webhook_url() → get_external_webhook_url()
+   - Adicionado: get_external_webhook_method(), is_auth_enabled(), get_bearer_token()
+   - Refatorado: fetch() agora suporta GET/POST com JSON body e Bearer Token
+   - Melhorado: Logs detalhados (método, url, payload, status, tempo, preview)
+   - Adicionado: normalize_external_order() para normalização completa
+   - Melhorado: fetch_external_orders() agora normaliza pedidos antes de retornar
+
+3. inc/core/class-orders.php
+   - Adicionado: get_external_orders() para buscar pedidos do webhook externo
+   - Adicionado: classify_order() para classificar pedidos em Motoboy/Correios
+   - Modificado: get_motoboy_orders() agora mescla pedidos WooCommerce e externos
+   - Modificado: get_correios_orders() agora mescla pedidos WooCommerce e externos
+   - Adicionado: Logs via PPWOO_Debug em cada etapa
+
+4. inc/core/class-utils.php
+   - Adicionado: is_external_order() para verificar se pedido é externo
+   - Adicionado: Funções auxiliares unificadas (get_order_id, get_billing_*, etc.)
+   - Adicionado: get_shipping_methods(), get_order_items() para arrays externos
+   - Adicionado: get_workflow_step() para acessar workflow step unificado
+
+5. templates/painel.php
+   - Modificado: Seção Motoboy usa funções auxiliares PPWOO_Utils
+   - Modificado: Seção Correios usa funções auxiliares PPWOO_Utils
+   - Compatível: Renderiza tanto WC_Order quanto arrays de pedidos externos
+   - Melhorado: Acesso a dados unificado via helpers
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. WEBHOOK EXTERNO:
+   - URL separada: ppwoo_external_webhook_url (independente de ppwoo_webhook_url)
+   - Método configurável: GET (parâmetros na URL) ou POST (JSON body)
+   - Autenticação opcional: Bearer Token salvo sanitizado, exibido mascarado
+   - Parâmetros padrão: action=get_orders, channel=whatsapp
+
+2. NORMALIZAÇÃO:
+   - Suporta formatos: {orders: [...]} ou array direto [...]
+   - Mapeia billing.* e billing_* (campos diretos)
+   - Normaliza shipping_methods, items, coupons conforme contrato
+   - Valida ID obrigatório e estrutura mínima
+   - Loga estruturas inesperadas sem bloquear processamento
+
+3. INTEGRAÇÃO:
+   - Pedidos externos mesclados com WooCommerce nas abas
+   - Classificação por status + shipping_methods[0].method_title
+   - Funções auxiliares abstraem diferenças WC_Order vs array
+   - Logs encapsulados via PPWOO_Debug em todo o fluxo
+
+4. COMPATIBILIDADE:
+   - Mantém compatibilidade total com pedidos WooCommerce existentes
+   - Pedidos externos identificados por flag _is_external
+   - Template renderiza ambos os tipos sem distinção visual
+
+================================================================================
 VERSÃO 0.3.0 - [Data: 2025-12-11]
 ================================================================================
 
