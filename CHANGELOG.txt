@@ -7,7 +7,7 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
-VERSÃO 0.3.1 - [Data: 2025-12-11]
+VERSÃO 0.3.1 - [Data: 2025-12-12]
 ================================================================================
 
 RESUMO DA VERSÃO:
@@ -151,6 +151,23 @@ NOTAS TÉCNICAS:
    - Mantém compatibilidade total com pedidos WooCommerce existentes
    - Pedidos externos identificados por flag _is_external
    - Template renderiza ambos os tipos sem distinção visual
+
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: 24361bf24635a2120f48b94b24adcc586410ed2e
+Data: 2025-12-12 11:25:48 -0300
+Mensagem: feat: webhook externo com GET/POST + auth Bearer e integração de pedidos externos (v0.3.1)
+Arquivos:
+  - packing-panel-woo-dev.php (versão atualizada para 0.3.1)
+  - CHANGELOG.txt (atualizado com versão 0.3.1)
+  - external-order-contract.txt (adicionada seção de formato esperado da resposta)
+  - inc/admin/class-admin-connection-tab.php (campos webhook externo)
+  - inc/integrations/class-webhook-client.php (GET/POST + Bearer, normalização)
+  - inc/core/class-orders.php (integração pedidos externos)
+  - inc/core/class-utils.php (funções auxiliares unificadas)
+  - templates/painel.php (renderização pedidos externos)
 
 ================================================================================
 VERSÃO 0.3.0 - [Data: 2025-12-11]
