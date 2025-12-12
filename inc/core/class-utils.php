@@ -41,6 +41,19 @@ class PPWOO_Utils {
     }
     
     /**
+     * Obtém URL de imagem placeholder com fallback seguro
+     * 
+     * @return string URL da imagem placeholder
+     */
+    private static function get_placeholder_image_url() {
+        if (function_exists('wc_placeholder_img_url')) {
+            return wc_placeholder_img_url();
+        }
+        // Fallback para placeholder padrão do WordPress
+        return includes_url('images/media/default.png');
+    }
+    
+    /**
      * Prepara dados de rastreio para salvar no pedido
      * 
      * @param array $tracking_data Dados brutos do rastreio
@@ -92,7 +105,7 @@ class PPWOO_Utils {
                 'sku' => $product ? $product->get_sku() : '',
                 'image_url' => $product && $product->get_image_id() 
                     ? wp_get_attachment_image_url($product->get_image_id(), 'thumbnail') 
-                    : wc_placeholder_img_url(),
+                    : self::get_placeholder_image_url(),
             );
         }, $order->get_items());
     }
@@ -411,11 +424,61 @@ class PPWOO_Utils {
      * @return array Array de arrays com product_id, name, quantity, image_url, etc.
      */
     public static function get_order_items($order) {
+        // #region agent log (H1/H2/H3/H4) - entry context (no PII)
+        if (function_exists('wp_remote_post') && function_exists('wp_json_encode')) {
+            wp_remote_post('http://127.0.0.1:7242/ingest/9eeecb1f-b404-4943-9445-b5ad07f9cc25', array(
+                'headers'  => array('Content-Type' => 'application/json'),
+                'body'     => wp_json_encode(array(
+                    'sessionId'    => 'debug-session',
+                    'runId'        => 'run1',
+                    'hypothesisId' => 'H1',
+                    'location'     => 'inc/core/class-utils.php:get_order_items:entry',
+                    'message'      => 'Entering get_order_items',
+                    'data'         => array(
+                        'order_type' => is_object($order) ? get_class($order) : gettype($order),
+                        'is_wc_order' => (class_exists('WC_Order') && ($order instanceof WC_Order)),
+                        'has_wc_placeholder' => function_exists('wc_placeholder_img_url'),
+                        'did_woocommerce_init' => function_exists('did_action') ? (int) did_action('woocommerce_init') : -1,
+                        'has_woocommerce_class' => class_exists('WooCommerce'),
+                        'has_wc_function' => function_exists('WC'),
+                        'is_admin' => function_exists('is_admin') ? (bool) is_admin() : null,
+                    ),
+                    'timestamp'    => round(microtime(true) * 1000),
+                )),
+                'timeout'  => 0.01,
+                'blocking' => false,
+            ));
+        }
+        // #endregion
+
         if ($order instanceof WC_Order) {
             $items = array();
             foreach ($order->get_items() as $item_id => $item) {
                 $product = $item->get_product();
                 $image_id = $product ? $product->get_image_id() : 0;
+
+                // #region agent log (H1/H2/H3) - before image_url resolution (no PII)
+                if (function_exists('wp_remote_post') && function_exists('wp_json_encode')) {
+                    wp_remote_post('http://127.0.0.1:7242/ingest/9eeecb1f-b404-4943-9445-b5ad07f9cc25', array(
+                        'headers'  => array('Content-Type' => 'application/json'),
+                        'body'     => wp_json_encode(array(
+                            'sessionId'    => 'debug-session',
+                            'runId'        => 'run1',
+                            'hypothesisId' => 'H2',
+                            'location'     => 'inc/core/class-utils.php:get_order_items:before_image_url',
+                            'message'      => 'Resolving image_url for item',
+                            'data'         => array(
+                                'image_id' => (int) $image_id,
+                                'has_wc_placeholder' => function_exists('wc_placeholder_img_url'),
+                            ),
+                            'timestamp'    => round(microtime(true) * 1000),
+                        )),
+                        'timeout'  => 0.01,
+                        'blocking' => false,
+                    ));
+                }
+                // #endregion
+
                 $items[] = array(
                     'item_id' => $item_id,
                     'product_id' => $item->get_product_id(),
@@ -423,9 +486,32 @@ class PPWOO_Utils {
                     'name' => $item->get_name(),
                     'quantity' => $item->get_quantity(),
                     'total' => floatval($item->get_total()),
-                    'image_url' => $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : wc_placeholder_img_url(),
+                    'image_url' => $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : self::get_placeholder_image_url(),
                 );
             }
+
+            // #region agent log (H1/H2/H4) - exit for WC_Order path (no PII)
+            if (function_exists('wp_remote_post') && function_exists('wp_json_encode')) {
+                wp_remote_post('http://127.0.0.1:7242/ingest/9eeecb1f-b404-4943-9445-b5ad07f9cc25', array(
+                    'headers'  => array('Content-Type' => 'application/json'),
+                    'body'     => wp_json_encode(array(
+                        'sessionId'    => 'debug-session',
+                        'runId'        => 'run1',
+                        'hypothesisId' => 'H4',
+                        'location'     => 'inc/core/class-utils.php:get_order_items:exit_wc_order',
+                        'message'      => 'Exiting get_order_items (WC_Order path)',
+                        'data'         => array(
+                            'items_count' => is_array($items) ? count($items) : -1,
+                            'has_wc_placeholder' => function_exists('wc_placeholder_img_url'),
+                        ),
+                        'timestamp'    => round(microtime(true) * 1000),
+                    )),
+                    'timeout'  => 0.01,
+                    'blocking' => false,
+                ));
+            }
+            // #endregion
+
             return $items;
         }
         if (is_array($order) && isset($order['items']) && is_array($order['items'])) {

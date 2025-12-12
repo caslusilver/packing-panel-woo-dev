@@ -7,6 +7,85 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.3.3 - [Data: 2025-12-12]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Correção: fallback seguro para imagem placeholder quando wc_placeholder_img_url() não está disponível
+- Evita fatal error ao renderizar shortcode [packing_panel] em contextos onde WooCommerce não está carregado (ex.: Elementor editor/admin)
+
+--------------------------------------------------------------------------------
+CORREÇÕES REALIZADAS:
+--------------------------------------------------------------------------------
+
+1. FALLBACK DE IMAGEM PLACEHOLDER (BUGFIX)
+   - Arquivo: inc/core/class-utils.php
+   - Problema: Fatal error "Call to undefined function wc_placeholder_img_url()" ao renderizar
+              shortcode [packing_panel] em contextos onde helper do WooCommerce não está carregado
+              (ex.: editor do Elementor, páginas admin)
+   - Solução: Criado helper privado get_placeholder_image_url() que:
+     * Verifica se wc_placeholder_img_url() está disponível antes de chamar
+     * Se disponível → retorna wc_placeholder_img_url()
+     * Se não disponível → retorna placeholder padrão do WordPress (includes_url('images/media/default.png'))
+   - Impacto: Elimina fatal error e permite renderização do painel em qualquer contexto
+   - Locais corrigidos:
+     * PPWOO_Utils::prepare_order_items_payload() (linha ~95)
+     * PPWOO_Utils::get_order_items() (linha ~476)
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. inc/core/class-utils.php
+   - Adicionado: Método privado get_placeholder_image_url() com fallback seguro
+   - Alterado: prepare_order_items_payload() usa helper em vez de wc_placeholder_img_url() direto
+   - Alterado: get_order_items() usa helper em vez de wc_placeholder_img_url() direto
+
+2. packing-panel-woo-dev.php
+   - Versão atualizada: 0.3.2 → 0.3.3
+
+--------------------------------------------------------------------------------
+TESTE DE CORREÇÃO:
+--------------------------------------------------------------------------------
+
+1. CENÁRIO 1 (ADMIN/ELEMENTOR):
+   - Abrir editor do Elementor em uma página com shortcode [packing_panel]
+   - Resultado esperado: Não deve ocorrer fatal error
+   - Status: ✅ Validado
+
+2. CENÁRIO 2 (FRONTEND):
+   - Abrir página publicada com shortcode [packing_panel]
+   - Resultado esperado: Lista renderiza normalmente (com imagem do produto ou placeholder)
+   - Status: ✅ Validado
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. FALLBACK SEGURO:
+   - Helper verifica function_exists() antes de chamar wc_placeholder_img_url()
+   - Fallback usa includes_url() do WordPress (sempre disponível)
+   - Mantém compatibilidade total com WooCommerce quando disponível
+   - Não quebra visualmente quando WooCommerce não está carregado
+
+2. COMPATIBILIDADE:
+   - Mantém comportamento original quando WooCommerce está carregado
+   - Permite renderização em contextos não-WooCommerce sem erros
+   - Placeholder padrão do WP garante que sempre há uma imagem válida
+
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: (a ser preenchido após commit)
+Data: 2025-12-12
+Mensagem: fix: fallback seguro para placeholder de imagem quando WooCommerce não está carregado (v0.3.3)
+Arquivos:
+  - packing-panel-woo-dev.php (versão atualizada para 0.3.3)
+  - CHANGELOG.txt (atualizado com versão 0.3.3)
+  - inc/core/class-utils.php (helper get_placeholder_image_url() + substituição de usos)
+
+================================================================================
 VERSÃO 0.3.2 - [Data: 2025-12-12]
 ================================================================================
 
