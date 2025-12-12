@@ -77,8 +77,8 @@ NOTAS TÉCNICAS:
 HISTÓRICO DE COMMITS:
 --------------------------------------------------------------------------------
 
-Commit: (a ser preenchido após commit)
-Data: 2025-12-12
+Commit: 9e44b6e
+Data: 2025-12-12 12:31:02 -0300
 Mensagem: fix: fallback seguro para placeholder de imagem quando WooCommerce não está carregado (v0.3.3)
 Arquivos:
   - packing-panel-woo-dev.php (versão atualizada para 0.3.3)
