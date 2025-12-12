@@ -126,6 +126,19 @@ class PPWOO_Admin_Connection_Tab {
         
         <hr>
         
+        <h2><?php esc_html_e('Testar Webhook Externo', 'painel-empacotamento'); ?></h2>
+        <p><?php esc_html_e('Clique no botão abaixo para testar a conexão com o webhook externo configurado.', 'painel-empacotamento'); ?></p>
+        
+        <button type="button" 
+                id="ppwoo-test-external-webhook" 
+                class="button button-secondary">
+            <?php esc_html_e('Testar Webhook Externo', 'painel-empacotamento'); ?>
+        </button>
+        
+        <div id="ppwoo-external-webhook-test-result" style="margin-top: 15px; display: none;"></div>
+        
+        <hr>
+        
         <h2><?php esc_html_e('Testar Webhook', 'painel-empacotamento'); ?></h2>
         <p><?php esc_html_e('Clique no botão abaixo para testar a conexão com o webhook configurado.', 'painel-empacotamento'); ?></p>
         
@@ -137,17 +150,6 @@ class PPWOO_Admin_Connection_Tab {
         
         <div id="ppwoo-webhook-test-result" style="margin-top: 15px; display: none;"></div>
         
-        <script>
-        jQuery(document).ready(function($) {
-            $('#external_webhook_auth_enabled').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#external_webhook_bearer_row').show();
-                } else {
-                    $('#external_webhook_bearer_row').hide();
-                }
-            });
-        });
-        </script>
         <?php
     }
     
@@ -315,6 +317,120 @@ class PPWOO_Admin_Connection_Tab {
                 'status' => $status_code,
                 'elapsed' => number_format($elapsed, 2) . 'ms',
                 'body_preview' => $body_preview,
+            ]);
+        }
+    }
+    
+    /**
+     * Handler AJAX para testar o webhook externo
+     */
+    public static function ajax_test_external_webhook() {
+        check_ajax_referer('ppwoo_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Sem permissão.', 'painel-empacotamento')]);
+        }
+        
+        $external_url = get_option(self::OPTION_EXTERNAL_URL, '');
+        
+        if (empty($external_url)) {
+            wp_send_json_error(['message' => __('URL do webhook externo não configurada.', 'painel-empacotamento')]);
+        }
+        
+        $method = get_option(self::OPTION_EXTERNAL_METHOD, 'get');
+        $auth_enabled = get_option(self::OPTION_EXTERNAL_AUTH_ENABLED, 'no') === 'yes';
+        $bearer_token = $auth_enabled ? get_option(self::OPTION_EXTERNAL_BEARER_TOKEN, '') : '';
+        
+        $start_time = microtime(true);
+        
+        // Prepara headers
+        $headers = array();
+        if ($method === 'post') {
+            $headers['Content-Type'] = 'application/json';
+        }
+        if ($auth_enabled && !empty($bearer_token)) {
+            $headers['Authorization'] = 'Bearer ' . $bearer_token;
+        }
+        
+        // Prepara URL e body conforme método
+        $request_url = $external_url;
+        $request_body = null;
+        $params = array('action' => 'get_orders', 'channel' => 'whatsapp');
+        
+        if ($method === 'get') {
+            // GET: adiciona parâmetros na URL
+            $request_url = add_query_arg($params, $external_url);
+        } else {
+            // POST: envia JSON no body
+            $request_body = wp_json_encode($params);
+        }
+        
+        PPWOO_Debug::info('Testando webhook externo', [
+            'method' => $method,
+            'url' => $request_url,
+            'auth_enabled' => $auth_enabled,
+        ]);
+        
+        // Faz a requisição
+        if ($method === 'post') {
+            $response = wp_remote_post($request_url, [
+                'headers' => $headers,
+                'body' => $request_body,
+                'timeout' => 15,
+                'sslverify' => apply_filters('packing_panel_webhook_sslverify', !PPWOO_Config::is_debug()),
+            ]);
+        } else {
+            $response = wp_remote_get($request_url, [
+                'headers' => $headers,
+                'timeout' => 15,
+                'sslverify' => apply_filters('packing_panel_webhook_sslverify', !PPWOO_Config::is_debug()),
+            ]);
+        }
+        
+        $elapsed = (microtime(true) - $start_time) * 1000;
+        
+        if (is_wp_error($response)) {
+            PPWOO_Debug::error('Erro ao testar webhook externo', ['error' => $response->get_error_message()]);
+            
+            wp_send_json_error([
+                'message' => __('Erro na conexão: ', 'painel-empacotamento') . $response->get_error_message(),
+                'elapsed_ms' => number_format($elapsed, 2),
+            ]);
+        }
+        
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $body_preview = mb_substr($body, 0, 200);
+        
+        // Tenta decodificar JSON para mostrar chaves
+        $decoded_keys = array();
+        $decoded_data = json_decode($body, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_data)) {
+            $decoded_keys = array_keys($decoded_data);
+        }
+        
+        PPWOO_Debug::info('Resposta do webhook externo', [
+            'status' => $status_code,
+            'elapsed' => $elapsed . 'ms',
+            'body_preview' => $body_preview,
+            'decoded_keys' => $decoded_keys,
+        ]);
+        
+        if ($status_code >= 200 && $status_code < 300) {
+            wp_send_json_success([
+                'message' => __('Webhook externo respondendo corretamente!', 'painel-empacotamento'),
+                'status_code' => $status_code,
+                'elapsed_ms' => number_format($elapsed, 2),
+                'body_preview' => $body_preview,
+                'decoded_keys' => $decoded_keys,
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => sprintf(__('Webhook externo retornou status %d', 'painel-empacotamento'), $status_code),
+                'status_code' => $status_code,
+                'elapsed_ms' => number_format($elapsed, 2),
+                'body_preview' => $body_preview,
+                'decoded_keys' => $decoded_keys,
             ]);
         }
     }

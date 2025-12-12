@@ -40,10 +40,7 @@ jQuery(function($) {
             });
         });
 
-        // Scroll suave até a notificação
-        $('html, body').animate({
-            scrollTop: notice.offset().top - 50
-        }, 300);
+        // Não faz scroll automático - mantém posição atual
     }
 
     /**
@@ -75,6 +72,20 @@ jQuery(function($) {
             },
             success: function(response) {
                 if (response.success) {
+                    // Mostra ícone de concluído temporariamente
+                    var $icon = btn.find('.dashicons');
+                    var originalClass = $icon.attr('class');
+                    
+                    $icon.removeClass('dashicons-update')
+                         .addClass('dashicons-yes')
+                         .css('color', '#46b450');
+                    
+                    // Reverte após 3 segundos
+                    setTimeout(function() {
+                        $icon.attr('class', originalClass)
+                             .css('color', '');
+                    }, 3000);
+                    
                     ppwooNotice(response.data || 'Cache atualizado com sucesso!', 'success');
                 } else {
                     ppwooNotice(response.data || 'Erro ao atualizar cache.', 'error');

@@ -7,6 +7,104 @@ Este arquivo documenta todas as atualizações, correções e melhorias realizad
 no plugin para facilitar a criação de commits e releases futuras.
 
 ================================================================================
+VERSÃO 0.3.2 - [Data: 2025-12-12]
+================================================================================
+
+RESUMO DA VERSÃO:
+- Adicionado botão de teste para webhook externo com preview de resposta
+- Implementada navegação de abas via AJAX (sem recarregar página)
+- Melhorada UX do refresh cache (sem alterar scroll + ícone de concluído)
+- Re-inicialização automática de recursos após troca de abas (color picker, toggle Bearer)
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES ADICIONADAS:
+--------------------------------------------------------------------------------
+
+1. TESTE DE WEBHOOK EXTERNO
+   - Arquivo: inc/admin/class-admin-connection-tab.php
+   - Descrição: Botão e endpoint AJAX para testar webhook externo configurado
+   - Funcionalidades:
+     * Botão "Testar Webhook Externo" na aba Conexão
+     * Endpoint AJAX: wp_ajax_ppwoo_test_external_webhook
+     * Exibe status HTTP, tempo de resposta (ms), preview do body e chaves JSON decodificadas
+     * Reaproveita lógica do PPWOO_WebhookClient (GET/POST + Bearer Token)
+     * Tratamento de erros com mensagens claras
+
+2. NAVEGAÇÃO DE ABAS VIA AJAX
+   - Arquivo: inc/admin/class-admin-menu.php, assets/js/admin.js
+   - Descrição: Troca de abas Estilo/Conexão sem recarregar página
+   - Funcionalidades:
+     * Intercepta cliques nas abas e faz requisição AJAX
+     * Endpoint AJAX: wp_ajax_ppwoo_load_admin_tab
+     * Atualiza conteúdo dinamicamente sem mudar URL
+     * Re-inicializa recursos após troca:
+       - Color picker (wpColorPicker) na aba Estilo
+       - Toggle do Bearer Token na aba Conexão
+     * Fallback: recarrega página normalmente em caso de erro
+     * Script inline removido da aba Conexão (movido para admin.js)
+
+3. MELHORIAS UX REFRESH CACHE
+   - Arquivo: assets/js/admin-refresh-cache.js
+   - Descrição: Ajustes na experiência do usuário ao atualizar cache
+   - Melhorias:
+     * Removido scroll automático após atualização (mantém posição atual)
+     * Ícone de concluído (dashicons-yes) verde após sucesso
+     * Ícone reverte ao estado normal após 3 segundos
+     * Feedback visual mais claro de sucesso
+
+--------------------------------------------------------------------------------
+ARQUIVOS MODIFICADOS:
+--------------------------------------------------------------------------------
+
+1. inc/admin/class-admin-connection-tab.php
+   - Adicionado: Seção "Testar Webhook Externo" com botão e área de resultado
+   - Adicionado: Método ajax_test_external_webhook() para endpoint AJAX
+   - Removido: Script inline do toggle Bearer (movido para admin.js)
+   - Melhorado: Estrutura HTML da seção de teste
+
+2. inc/admin/class-admin-menu.php
+   - Adicionado: Método ajax_load_admin_tab() para carregar conteúdo de abas via AJAX
+   - Funcionalidade: Captura output da aba via ob_start() e retorna HTML
+
+3. assets/js/admin.js
+   - Refatorado: Código reorganizado em funções (initColorPickers, initBearerToggle, initAll)
+   - Adicionado: Handler para teste de webhook externo (#ppwoo-test-external-webhook)
+   - Adicionado: Handler para troca de abas via AJAX (intercepta cliques em .nav-tab-wrapper)
+   - Adicionado: Re-inicialização automática de recursos após troca de aba
+   - Melhorado: Uso de event delegation para elementos carregados dinamicamente
+
+4. assets/js/admin-refresh-cache.js
+   - Removido: Scroll automático na função ppwooNotice()
+   - Adicionado: Ícone de concluído (dashicons-yes) verde após sucesso
+   - Adicionado: Reversão automática do ícone após 3 segundos
+
+5. packing-panel-woo-dev.php
+   - Versão atualizada: 0.3.1 → 0.3.2
+   - Adicionado: Handler AJAX para teste de webhook externo
+   - Adicionado: Handler AJAX para carregar abas
+
+--------------------------------------------------------------------------------
+NOTAS TÉCNICAS:
+--------------------------------------------------------------------------------
+
+1. TESTE DE WEBHOOK EXTERNO:
+   - Usa configurações atuais (URL, método GET/POST, Bearer Token se habilitado)
+   - Parâmetros padrão: action=get_orders, channel=whatsapp
+   - Retorna: status_code, elapsed_ms, body_preview, decoded_keys (chaves do JSON)
+   - Logs via PPWOO_Debug em cada etapa
+
+2. NAVEGAÇÃO AJAX:
+   - Não altera URL do navegador (melhor UX)
+   - Re-inicializa recursos automaticamente após troca
+   - Fallback para recarregamento normal em caso de erro
+   - Event delegation garante funcionamento com conteúdo carregado dinamicamente
+
+3. REFRESH CACHE:
+   - Scroll preservado: usuário permanece na mesma posição
+   - Feedback visual: ícone verde temporário indica sucesso
+   - Não interfere com outras funcionalidades da página
+
+================================================================================
 VERSÃO 0.3.1 - [Data: 2025-12-12]
 ================================================================================
 

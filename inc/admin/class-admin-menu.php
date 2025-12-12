@@ -113,4 +113,40 @@ class PPWOO_Admin_Menu {
             'nonce' => wp_create_nonce('ppwoo_admin_nonce'),
         ]);
     }
+    
+    /**
+     * Handler AJAX para carregar conteúdo de uma aba
+     */
+    public static function ajax_load_admin_tab() {
+        check_ajax_referer('ppwoo_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Sem permissão.', 'painel-empacotamento')]);
+        }
+        
+        $tab = isset($_POST['tab']) ? sanitize_text_field($_POST['tab']) : 'style';
+        
+        // Valida tab
+        if (!in_array($tab, ['style', 'connection'], true)) {
+            $tab = 'style';
+        }
+        
+        // Captura output da aba
+        ob_start();
+        
+        switch ($tab) {
+            case 'style':
+                PPWOO_Admin_Style_Tab::render();
+                break;
+            case 'connection':
+                PPWOO_Admin_Connection_Tab::render();
+                break;
+            default:
+                PPWOO_Admin_Style_Tab::render();
+        }
+        
+        $html = ob_get_clean();
+        
+        wp_send_json_success(['html' => $html]);
+    }
 }
