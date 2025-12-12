@@ -104,6 +104,21 @@ NOTAS TÉCNICAS:
    - Feedback visual: ícone verde temporário indica sucesso
    - Não interfere com outras funcionalidades da página
 
+--------------------------------------------------------------------------------
+HISTÓRICO DE COMMITS:
+--------------------------------------------------------------------------------
+
+Commit: e204cf1
+Data: 2025-12-12
+Mensagem: feat: teste webhook externo + abas AJAX + UX refresh cache (v0.3.2)
+Arquivos:
+  - packing-panel-woo-dev.php (versão atualizada para 0.3.2)
+  - CHANGELOG.txt (atualizado com versão 0.3.2)
+  - inc/admin/class-admin-connection-tab.php (botão teste webhook externo + endpoint AJAX)
+  - inc/admin/class-admin-menu.php (endpoint AJAX para carregar abas)
+  - assets/js/admin.js (navegação AJAX + handlers de teste)
+  - assets/js/admin-refresh-cache.js (UX melhorada: scroll + ícone concluído)
+
 ================================================================================
 VERSÃO 0.3.1 - [Data: 2025-12-12]
 ================================================================================
